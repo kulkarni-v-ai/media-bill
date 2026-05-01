@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Media Billing POS — monorepo root",
   "scripts": {
-    "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
+    "build": "npm install --prefix frontend --include=dev && npm run build --prefix frontend && npm install --prefix backend",
     "start": "node backend/src/server.js"
   }
 }
