@@ -1,14 +1,23 @@
 const Item = require('../models/Item');
 
 // @route GET /api/items
+// For billing: only active items, isActive:true
+// For admin inventory (?all=true): returns everything including central stock master
 const getItems = async (req, res) => {
   try {
-    const { category, search } = req.query;
-    const filter = { isActive: true };
+    const { category, search, all } = req.query;
+
+    // Admin can request all=true to see inactive items (like the central stock master)
+    const isAdminAll = all === 'true' && req.user.role === 'admin';
+    const filter = isAdminAll ? {} : { isActive: true };
+
     if (category) filter.category = category;
     if (search) filter.name = { $regex: search, $options: 'i' };
 
-    const items = await Item.find(filter).sort({ category: 1, name: 1 });
+    const items = await Item.find(filter)
+      .populate('stockRef', 'name stock lowStockThreshold')
+      .sort({ category: 1, name: 1 });
+
     res.json(items);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -18,8 +27,12 @@ const getItems = async (req, res) => {
 // @route POST /api/items
 const createItem = async (req, res) => {
   try {
-    const { name, category, price, stock, lowStockThreshold } = req.body;
-    const item = await Item.create({ name, category, price, stock, lowStockThreshold });
+    const { name, category, price, stock, lowStockThreshold, piecesPerUnit, stockRef } = req.body;
+    const item = await Item.create({
+      name, category, price, stock, lowStockThreshold,
+      piecesPerUnit: piecesPerUnit ?? 1,
+      stockRef: stockRef ?? null,
+    });
     res.status(201).json(item);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -32,7 +45,7 @@ const updateItem = async (req, res) => {
     const item = await Item.findById(req.params.id);
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
-    const fields = ['name', 'category', 'price', 'stock', 'lowStockThreshold', 'isActive'];
+    const fields = ['name', 'category', 'price', 'stock', 'lowStockThreshold', 'isActive', 'piecesPerUnit', 'stockRef'];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) item[f] = req.body[f];
     });
@@ -62,9 +75,7 @@ const deleteItem = async (req, res) => {
 const getLowStockItems = async (req, res) => {
   try {
     const items = await Item.find({ isActive: true });
-    const lowStock = items.filter(
-      (i) => i.stock <= i.lowStockThreshold
-    );
+    const lowStock = items.filter((i) => i.stock <= i.lowStockThreshold);
     res.json(lowStock);
   } catch (error) {
     res.status(500).json({ message: error.message });

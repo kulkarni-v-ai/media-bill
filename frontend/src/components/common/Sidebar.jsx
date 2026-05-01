@@ -3,17 +3,18 @@ import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import {
   RiDashboardLine, RiFileListLine, RiShoppingCartLine,
-  RiStackLine, RiTeamLine, RiLogoutBoxLine, RiQrCodeLine,
+  RiStackLine, RiTeamLine, RiLogoutBoxLine, RiReceiptLine,
 } from 'react-icons/ri';
 
 const NAV = [
-  { label: 'Dashboard', icon: <RiDashboardLine />, path: '/admin', roles: ['admin'] },
-  { label: 'Dashboard', icon: <RiDashboardLine />, path: '/manager', roles: ['manager'] },
-  { label: 'Dashboard', icon: <RiDashboardLine />, path: '/viewer', roles: ['viewer'] },
-  { label: 'Billing', icon: <RiShoppingCartLine />, path: '/billing', roles: ['admin', 'cashier'] },
-  { label: 'Inventory', icon: <RiStackLine />, path: '/inventory', roles: ['admin', 'cashier', 'viewer'] },
-  { label: 'Reports', icon: <RiFileListLine />, path: '/reports', roles: ['admin', 'manager'] },
-  { label: 'Users', icon: <RiTeamLine />, path: '/users', roles: ['admin'] },
+  { label: 'Dashboard',     icon: <RiDashboardLine />,    path: '/admin',    roles: ['admin'] },
+  { label: 'Dashboard',     icon: <RiDashboardLine />,    path: '/manager',  roles: ['manager'] },
+  { label: 'Dashboard',     icon: <RiDashboardLine />,    path: '/viewer',   roles: ['viewer'] },
+  { label: 'Billing',       icon: <RiShoppingCartLine />, path: '/billing',  roles: ['admin', 'cashier'] },
+  { label: 'Bills History', icon: <RiReceiptLine />,      path: '/bills',    roles: ['admin', 'manager', 'cashier', 'viewer'] },
+  { label: 'Inventory',     icon: <RiStackLine />,        path: '/inventory',roles: ['admin', 'cashier', 'viewer'] },
+  { label: 'Reports',       icon: <RiFileListLine />,     path: '/reports',  roles: ['admin', 'manager'] },
+  { label: 'Users',         icon: <RiTeamLine />,         path: '/users',    roles: ['admin'] },
 ];
 
 export default function Sidebar() {

@@ -9,9 +9,10 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
   const polaroids = cart.filter((i) => i.category === 'polaroid');
   const others = cart.filter((i) => i.category !== 'polaroid');
 
+  const polaroidQty   = polaroids.reduce((s, i) => s + i.qty, 0);
   const polaroidTotal = polaroids.reduce((s, i) => s + i.price * i.qty, 0);
-  const othersTotal = others.reduce((s, i) => s + i.price * i.qty, 0);
-  const grandTotal = polaroidTotal + othersTotal;
+  const othersTotal   = others.reduce((s, i) => s + i.price * i.qty, 0);
+  const grandTotal    = polaroidTotal + othersTotal;
 
   const renderLine = (item) => (
     <motion.div
@@ -44,10 +45,33 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
 
   return (
     <AnimatePresence mode="popLayout">
+      {/* ── Polaroids — single combined row ── */}
       {polaroids.length > 0 && (
         <>
           <div className="section-divider">📸 Polaroids</div>
-          {polaroids.map(renderLine)}
+          <motion.div
+            className="cart-line"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            layout
+          >
+            <div className="cart-line-info">
+              <div className="cart-line-name">Polaroids</div>
+              <div className="cart-line-price">
+                {polaroidQty} {polaroidQty === 1 ? 'print' : 'prints'} · ₹{polaroidTotal.toFixed(2)}
+              </div>
+            </div>
+            {/* Remove all polaroids */}
+            <button
+              className="btn-icon"
+              onClick={() => polaroids.forEach((p) => onRemove(p._id))}
+              style={{ padding: '4px 6px' }}
+              title="Remove all polaroids"
+            >
+              <RiDeleteBinLine style={{ fontSize: 14, color: 'var(--red)' }} />
+            </button>
+          </motion.div>
           {isAdmin && (
             <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'right', marginBottom: 4 }}>
               Polaroid subtotal: ₹{polaroidTotal.toFixed(2)}
@@ -55,9 +79,11 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
           )}
         </>
       )}
+
+      {/* ── Posters & Stickers — individual lines ── */}
       {others.length > 0 && (
         <>
-          <div className="section-divider">🎨 Posters & Stickers</div>
+          <div className="section-divider">🎨 Posters &amp; Stickers</div>
           {others.map(renderLine)}
           {isAdmin && (
             <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'right', marginBottom: 4 }}>

@@ -32,6 +32,22 @@ const itemSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // ── Centralised-stock support ─────────────────────────────────
+    // How many physical units one "sale unit" of this item consumes.
+    // e.g. "Group of 2 Polaroids" → piecesPerUnit: 2
+    piecesPerUnit: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    // If set, stock checks/deductions use THIS referenced item's stock
+    // instead of this item's own stock field.
+    // All polaroid variants point to a single "Polaroid Central Stock" master.
+    stockRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Item',
+      default: null,
+    },
   },
   { timestamps: true }
 );

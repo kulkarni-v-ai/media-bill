@@ -19,7 +19,8 @@ export default function Login() {
     try {
       const user = await login(form.email, form.password);
       toast.success(`Welcome back, ${user.name}!`);
-      navigate(ROLE_HOME[user.role] || '/');
+      // Small delay ensures setUser state is committed before router re-evaluates guards
+      setTimeout(() => navigate(ROLE_HOME[user.role] || '/'), 50);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
     } finally { setLoading(false); }

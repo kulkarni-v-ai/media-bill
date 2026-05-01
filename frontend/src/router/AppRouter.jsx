@@ -8,6 +8,7 @@ import Billing from '../pages/Billing';
 import Inventory from '../pages/Inventory';
 import Reports from '../pages/Reports';
 import UserManagement from '../pages/UserManagement';
+import BillsHistory from '../pages/BillsHistory';
 import Sidebar from '../components/common/Sidebar';
 
 const ROLE_HOME = {
@@ -33,7 +34,10 @@ const AppLayout = ({ children }) => (
 );
 
 export default function AppRouter() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Don't render routes until auth state is resolved
+  if (loading) return <div className="loader"><div className="spinner" /></div>;
 
   return (
     <BrowserRouter>
@@ -79,6 +83,12 @@ export default function AppRouter() {
         <Route path="/manager" element={
           <ProtectedRoute roles={['manager']}>
             <AppLayout><ManagerDashboard /></AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/bills" element={
+          <ProtectedRoute roles={['admin', 'manager', 'cashier', 'viewer']}>
+            <AppLayout><BillsHistory /></AppLayout>
           </ProtectedRoute>
         } />
 

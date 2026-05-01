@@ -10,18 +10,27 @@ import { RiShoppingCartLine, RiSearchLine, RiPrinterLine, RiDeleteBinLine, RiChe
 const CATS = ['all', 'polaroid', 'poster', 'sticker'];
 
 export default function Billing() {
-  const [items, setItems] = useState([]);
-  const [cart, setCart] = useState([]);
-  const [search, setSearch] = useState('');
-  const [cat, setCat] = useState('all');
+  const [items, setItems]             = useState([]);
+  const [centralPolaroidStock, setCentralPolaroidStock] = useState(null); // master polaroid count
+  const [cart, setCart]               = useState([]);
+  const [search, setSearch]           = useState('');
+  const [cat, setCat]                 = useState('all');
   const [customerName, setCustomerName] = useState('');
-  const [qrUsed, setQrUsed] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [lastBill, setLastBill] = useState(null);
+  const [qrUsed, setQrUsed]           = useState('');
+  const [submitting, setSubmitting]   = useState(false);
+  const [lastBill, setLastBill]       = useState(null);
   const printRef = useRef();
 
   const fetchItems = () => {
-    api.get('/items').then((r) => setItems(r.data)).catch(() => toast.error('Failed to load items'));
+    // Fetch with all=true so we also get the hidden central master for stock tracking
+    api.get('/items?all=true')
+      .then((r) => {
+        const all = r.data;
+        const master = all.find((i) => !i.isActive && i.category === 'polaroid' && !i.stockRef);
+        setCentralPolaroidStock(master?.stock ?? null);
+        setItems(all.filter((i) => i.isActive));
+      })
+      .catch(() => toast.error('Failed to load items'));
   };
 
   useEffect(() => { fetchItems(); }, []);
@@ -33,11 +42,18 @@ export default function Billing() {
   });
 
   const addToCart = (item) => {
-    if (item.stock === 0) { toast.error(`"${item.name}" is out of stock!`); return; }
+    const ppu       = item.piecesPerUnit ?? 1;
+    const effStock  = item.stockRef ? (centralPolaroidStock ?? 0) : item.stock;
+    const maxUnits  = ppu > 1 ? Math.floor(effStock / ppu) : effStock;
+
+    if (maxUnits === 0) { toast.error(`"${item.name}" is out of stock!`); return; }
     setCart((prev) => {
       const existing = prev.find((c) => c._id === item._id);
       if (existing) {
-        if (existing.qty >= item.stock) { toast.error(`Max stock (${item.stock}) reached for "${item.name}"`); return prev; }
+        if (existing.qty >= maxUnits) {
+          toast.error(`Max available (${maxUnits}) reached for "${item.name}"`);
+          return prev;
+        }
         return prev.map((c) => c._id === item._id ? { ...c, qty: c.qty + 1 } : c);
       }
       return [...prev, { ...item, qty: 1 }];
@@ -48,7 +64,10 @@ export default function Billing() {
     if (newQty <= 0) { removeFromCart(id); return; }
     setCart((prev) => prev.map((c) => {
       if (c._id !== id) return c;
-      if (newQty > c.stock) { toast.error(`Only ${c.stock} in stock`); return c; }
+      const ppu      = c.piecesPerUnit ?? 1;
+      const effStock = c.stockRef ? (centralPolaroidStock ?? 0) : c.stock;
+      const maxUnits = ppu > 1 ? Math.floor(effStock / ppu) : effStock;
+      if (newQty > maxUnits) { toast.error(`Only ${maxUnits} available for "${c.name}"`); return c; }
       return { ...c, qty: newQty };
     }));
   };
@@ -136,6 +155,7 @@ export default function Billing() {
                     key={item._id} item={item}
                     inCart={cart.some((c) => c._id === item._id)}
                     onAdd={addToCart}
+                    centralStock={centralPolaroidStock}
                   />
                 ))}
               </AnimatePresence>
