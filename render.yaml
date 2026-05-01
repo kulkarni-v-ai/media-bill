@@ -1,14 +1,12 @@
-# render.yaml — Render Blueprint
-# Deploys both the backend (Web Service) and frontend (Static Site) from one repo.
+# render.yaml — Render Blueprint (single web service)
+# Express serves both the API (/api/*) and the built React frontend.
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
-  # ── Backend: Node/Express API ────────────────────────────────────
   - type: web
-    name: media-bill-api
+    name: media-bill
     runtime: node
-    rootDir: backend
-    buildCommand: npm install
+    buildCommand: npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -16,23 +14,8 @@ services:
       - key: PORT
         value: 10000
       - key: MONGODB_URI
-        sync: false          # Set manually in Render dashboard (secret)
+        sync: false        # Set in Render dashboard → Environment
       - key: JWT_SECRET
-        sync: false          # Set manually in Render dashboard (secret)
+        sync: false        # Set in Render dashboard → Environment
       - key: CLIENT_ORIGIN
-        sync: false          # Set to your frontend Render URL after deploy
-
-  # ── Frontend: Vite/React Static Site ────────────────────────────
-  - type: static
-    name: media-bill-ui
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false          # Set to https://media-bill-api.onrender.com/api
-    routes:
-      # SPA fallback — all paths serve index.html (React Router handles routing)
-      - type: rewrite
-        source: /*
-        destination: /index.html
+        value: same-origin # Not needed when frontend+backend are same service
