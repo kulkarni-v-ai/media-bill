@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   RiReceiptLine, RiUserLine, RiTimeLine,
   RiQrCodeLine, RiArrowDownSLine, RiArrowUpSLine,
+  RiDownloadLine,
 } from 'react-icons/ri';
 import toast from 'react-hot-toast';
 import BillExpandedView from '../components/billing/BillExpandedView';
@@ -17,13 +18,14 @@ export default function BillsHistory() {
   const { user }  = useAuth();
   const isAdmin   = user?.role === 'admin';
 
-  const [bills, setBills]         = useState([]);
-  const [total, setTotal]         = useState(0);
-  const [page, setPage]           = useState(1);
-  const [loading, setLoading]     = useState(false);
+  const [bills, setBills]           = useState([]);
+  const [total, setTotal]           = useState(0);
+  const [page, setPage]             = useState(1);
+  const [loading, setLoading]       = useState(false);
+  const [exporting, setExporting]   = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [dateFilter, setDateFilter] = useState('');
-  const [qrFilter, setQrFilter]   = useState('');
+  const [qrFilter, setQrFilter]     = useState('');
 
   const totalPages = Math.ceil(total / LIMIT);
 
@@ -55,13 +57,165 @@ export default function BillsHistory() {
     hour: '2-digit', minute: '2-digit', hour12: true,
   });
 
+  // ── CSV Export ───────────────────────────────────────────────
+  const escCSV = (v) => {
+    const s = String(v ?? '');
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? `"${s.replace(/"/g, '""')}"`
+      : s;
+  };
+
+  const exportCSV = async () => {
+    setExporting(true);
+    try {
+      // Fetch ALL bills matching current filter (no pagination)
+      const params = new URLSearchParams({ page: 1, limit: 9999 });
+      if (dateFilter) params.append('date', dateFilter);
+      if (qrFilter)   params.append('qrUsed', qrFilter);
+      const { data } = await api.get(`/bills?${params}`);
+      const allBills = data.bills;
+
+      if (!allBills.length) { toast.error('No bills to export'); setExporting(false); return; }
+
+      const rows = [];
+
+      // ── Header ──────────────────────────────────────────────
+      const adminCols = isAdmin ? ['Polaroid Total (₹)', 'Others Total (₹)'] : [];
+      rows.push([
+        'Bill #', 'Bill ID', 'Date & Time', 'Customer', 'Cashier', 'Cashier Role',
+        'Item Name', 'Category', 'Qty', 'Unit Price (₹)', 'Line Total (₹)',
+        ...adminCols,
+        'Grand Total (₹)', 'QR Used',
+      ].map(escCSV).join(','));
+
+      // ── Per-bill rows ────────────────────────────────────────
+      let sumPolaroid = 0, sumOthers = 0, sumGrand = 0;
+
+      allBills.forEach((bill, idx) => {
+        const billNo     = idx + 1;
+        const billId     = bill._id.slice(-8).toUpperCase();
+        const dateStr    = fmt(bill.createdAt);
+        const customer   = bill.customerName;
+        const cashier    = bill.createdBy?.name ?? 'N/A';
+        const cashierRole = bill.createdBy?.role ?? '';
+        const qr         = bill.qrUsed;
+        const grand      = bill.grandTotal ?? 0;
+        const polaroid   = bill.polaroidTotal ?? 0;
+        const others     = bill.othersTotal ?? 0;
+
+        sumGrand    += grand;
+        sumPolaroid += polaroid;
+        sumOthers   += others;
+
+        const items = bill.items ?? [];
+
+        if (items.length === 0) {
+          // Bill with no items (edge case)
+          const adminVals = isAdmin ? [polaroid.toFixed(2), others.toFixed(2)] : [];
+          rows.push([
+            billNo, billId, dateStr, customer, cashier, cashierRole,
+            '', '', '', '', '',
+            ...adminVals,
+            grand.toFixed(2), qr,
+          ].map(escCSV).join(','));
+        } else {
+          // First item row — includes bill-level info
+          items.forEach((li, liIdx) => {
+            const lineTotal = (li.qty * li.unitPrice).toFixed(2);
+            const adminVals = isAdmin
+              ? (liIdx === 0
+                  ? [polaroid.toFixed(2), others.toFixed(2)]
+                  : ['', ''])
+              : [];
+            rows.push([
+              liIdx === 0 ? billNo : '',          // bill # only on first item row
+              liIdx === 0 ? billId : '',
+              liIdx === 0 ? dateStr : '',
+              liIdx === 0 ? customer : '',
+              liIdx === 0 ? cashier : '',
+              liIdx === 0 ? cashierRole : '',
+              li.name,
+              li.category,
+              li.qty,
+              li.unitPrice.toFixed(2),
+              lineTotal,
+              ...adminVals,
+              liIdx === 0 ? grand.toFixed(2) : '', // grand total only on first item row
+              liIdx === 0 ? qr : '',
+            ].map(escCSV).join(','));
+          });
+        }
+
+        // Blank separator row between bills
+        rows.push('');
+      });
+
+      // ── Totals summary row ───────────────────────────────────
+      rows.push(''); // extra blank line before totals
+      const adminTotals = isAdmin
+        ? [sumPolaroid.toFixed(2), sumOthers.toFixed(2)]
+        : [];
+      rows.push([
+        'TOTAL', '', '', `${allBills.length} bills`, '', '',
+        '', '', '', '', '',
+        ...adminTotals,
+        sumGrand.toFixed(2), '',
+      ].map(escCSV).join(','));
+
+      // ── Download ─────────────────────────────────────────────
+      const dateLabel = dateFilter || new Date().toISOString().slice(0, 10);
+      const filename  = `media-bills-${dateLabel}${qrFilter ? `-${qrFilter}` : ''}.csv`;
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${allBills.length} bills to ${filename}`);
+    } catch {
+      toast.error('Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="page-header">
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <RiReceiptLine style={{ color: 'var(--accent)' }} /> Bills History
-        </h1>
-        <p>{total} total bills recorded</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <RiReceiptLine style={{ color: 'var(--accent)' }} /> Bills History
+            </h1>
+            <p>{total} total bills recorded</p>
+          </div>
+          {/* Admin-only Export button */}
+          {isAdmin && (
+            <motion.button
+              id="export-csv-btn"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={exportCSV}
+              disabled={exporting || total === 0}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '9px 18px', borderRadius: 10,
+                background: 'rgba(34,197,94,0.1)',
+                border: '1.5px solid rgba(34,197,94,0.35)',
+                color: 'var(--green)', cursor: 'pointer',
+                fontWeight: 700, fontSize: 13,
+                opacity: (exporting || total === 0) ? 0.5 : 1,
+              }}
+            >
+              <RiDownloadLine style={{ fontSize: 16 }} />
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </motion.button>
+          )}
+        </div>
       </div>
 
       {/* ── Filters ── */}
