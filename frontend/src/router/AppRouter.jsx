@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { RiMenuLine } from 'react-icons/ri';
 import { useAuth } from '../context/AuthContext';
 import Login from '../pages/Login';
 import AdminDashboard from '../pages/AdminDashboard';
@@ -26,12 +28,26 @@ const ProtectedRoute = ({ children, roles }) => {
   return children;
 };
 
-const AppLayout = ({ children }) => (
-  <div className="layout">
-    <Sidebar />
-    <main className="main-content">{children}</main>
-  </div>
-);
+const AppLayout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  return (
+    <div className="layout">
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <div className="mobile-header-title">Media <span>POS</span></div>
+        <button className="btn-icon" onClick={() => setSidebarOpen(true)}>
+          <RiMenuLine style={{ fontSize: 24 }} />
+        </button>
+      </div>
+
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      <main className="main-content">
+        {children}
+      </main>
+    </div>
+  );
+};
 
 export default function AppRouter() {
   const { user, loading } = useAuth();
