@@ -45,33 +45,11 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
 
   return (
     <AnimatePresence mode="popLayout">
-      {/* ── Polaroids — single combined row ── */}
+      {/* ── Polaroids ── */}
       {polaroids.length > 0 && (
         <>
           <div className="section-divider">📸 Polaroids</div>
-          <motion.div
-            className="cart-line"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            layout
-          >
-            <div className="cart-line-info">
-              <div className="cart-line-name">Polaroids</div>
-              <div className="cart-line-price">
-                {polaroidQty} {polaroidQty === 1 ? 'print' : 'prints'} · ₹{polaroidTotal.toFixed(2)}
-              </div>
-            </div>
-            {/* Remove all polaroids */}
-            <button
-              className="btn-icon"
-              onClick={() => polaroids.forEach((p) => onRemove(p._id))}
-              style={{ padding: '4px 6px' }}
-              title="Remove all polaroids"
-            >
-              <RiDeleteBinLine style={{ fontSize: 14, color: 'var(--red)' }} />
-            </button>
-          </motion.div>
+          {polaroids.map(renderLine)}
           {isAdmin && (
             <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'right', marginBottom: 4 }}>
               Polaroid subtotal: ₹{polaroidTotal.toFixed(2)}

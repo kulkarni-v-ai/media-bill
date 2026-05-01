@@ -173,23 +173,25 @@ const getBillById = async (req, res) => {
 // @route DELETE /api/bills/:id  — admin only
 const deleteBill = async (req, res) => {
   try {
+    const { restock } = req.query;
     const bill = await Bill.findById(req.params.id);
     if (!bill) return res.status(404).json({ message: 'Bill not found' });
 
-    // Restore stock for every line item.
-    // Need the original item to know piecesPerUnit + stockRef.
-    for (const li of bill.items) {
-      const item = await Item.findById(li.item);
-      if (!item) continue; // item may have been removed; skip gracefully
+    // Conditionally restore stock for every line item.
+    if (restock === 'true') {
+      for (const li of bill.items) {
+        const item = await Item.findById(li.item);
+        if (!item) continue; // item may have been removed; skip gracefully
 
-      const ppu = item.piecesPerUnit ?? 1;
-      const pieces = li.qty * ppu;
-      const stockItemId = item.stockRef ?? item._id;
-      await Item.findByIdAndUpdate(stockItemId, { $inc: { stock: pieces } });
+        const ppu = item.piecesPerUnit ?? 1;
+        const pieces = li.qty * ppu;
+        const stockItemId = item.stockRef ?? item._id;
+        await Item.findByIdAndUpdate(stockItemId, { $inc: { stock: pieces } });
+      }
     }
 
     await bill.deleteOne();
-    res.json({ message: 'Bill deleted and stock restored successfully' });
+    res.json({ message: `Bill deleted${restock === 'true' ? ' and stock restored successfully' : ' successfully'}` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

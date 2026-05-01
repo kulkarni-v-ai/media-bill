@@ -91,8 +91,16 @@ export default function Inventory() {
         lowStockThreshold: Number(form.lowStockThreshold),
         piecesPerUnit: Number(form.piecesPerUnit) || 1,
       };
+
+      // Auto-link polaroid category items to central stock
+      if (body.category === 'polaroid' && centralMaster && editing?._id !== centralMaster._id) {
+        body.stockRef = centralMaster._id;
+        body.stock = 0; // Central stock is used instead
+      }
+
       if (editing) await api.put(`/items/${editing._id}`, body);
       else await api.post('/items', body);
+      
       toast.success(editing ? 'Item updated' : 'Item created');
       setModal(false);
       fetchItems();
@@ -353,13 +361,21 @@ export default function Inventory() {
             <option value="sticker">Sticker</option>
           </select>
         </div>
-        {[['price', 'Price (₹)'], ['stock', 'Stock Quantity'], ['lowStockThreshold', 'Low Stock Threshold']].map(([f, label]) => (
+        {[['price', 'Price (₹)']].map(([f, label]) => (
           <div className="form-group" key={f}>
             <label className="form-label">{label}</label>
             <input className="form-input" type="number" value={form[f]} onChange={(e) => setForm({ ...form, [f]: e.target.value })} min="0" />
           </div>
         ))}
-        <div className="form-group">
+
+        {form.category !== 'polaroid' && [['stock', 'Stock Quantity'], ['lowStockThreshold', 'Low Stock Threshold']].map(([f, label]) => (
+          <div className="form-group" key={f}>
+            <label className="form-label">{label}</label>
+            <input className="form-input" type="number" value={form[f]} onChange={(e) => setForm({ ...form, [f]: e.target.value })} min="0" />
+          </div>
+        ))}
+
+        <div className="form-group" style={{ display: form.category === 'polaroid' ? 'block' : 'none' }}>
           <label className="form-label" style={{ color: 'var(--yellow)' }}>Pieces Per Unit (polaroid packs)</label>
           <input className="form-input" type="number" min="1" value={form.piecesPerUnit}
             onChange={(e) => setForm({ ...form, piecesPerUnit: e.target.value })} />

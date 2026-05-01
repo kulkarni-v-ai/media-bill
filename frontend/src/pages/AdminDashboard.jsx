@@ -95,9 +95,9 @@ export default function AdminDashboard() {
       {lowStock.length > 0 && (
         <motion.div className="card mb-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
           <h3 style={{ marginBottom: 12, fontWeight: 700 }}>⚠️ Stock Alerts</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
             {lowStock.map((item) => (
-              <div key={item._id} className={`alert-banner ${item.stock === 0 ? 'alert-danger' : 'alert-warning'}`} style={{ marginBottom: 0, flex: '1 1 200px' }}>
+              <div key={item._id} className={`alert-banner ${item.stock === 0 ? 'alert-danger' : 'alert-warning'}`} style={{ marginBottom: 0 }}>
                 <RiAlertLine />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{item.name}</div>

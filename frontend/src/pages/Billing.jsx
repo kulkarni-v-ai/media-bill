@@ -12,11 +12,13 @@ const CATS = ['all', 'polaroid', 'poster', 'sticker'];
 export default function Billing() {
   const [items, setItems]             = useState([]);
   const [centralPolaroidStock, setCentralPolaroidStock] = useState(null); // master polaroid count
-  const [cart, setCart]               = useState([]);
+  const [cart, setCart]               = useState(() => {
+    try { const saved = localStorage.getItem('pos_cart'); return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
   const [search, setSearch]           = useState('');
   const [cat, setCat]                 = useState('all');
-  const [customerName, setCustomerName] = useState('');
-  const [qrUsed, setQrUsed]           = useState('');
+  const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customerName') || '');
+  const [qrUsed, setQrUsed]           = useState(() => localStorage.getItem('pos_qrUsed') || '');
   const [submitting, setSubmitting]   = useState(false);
   const [lastBill, setLastBill]       = useState(null);
   const printRef = useRef();
@@ -34,6 +36,12 @@ export default function Billing() {
   };
 
   useEffect(() => { fetchItems(); }, []);
+
+  useEffect(() => {
+    localStorage.setItem('pos_cart', JSON.stringify(cart));
+    localStorage.setItem('pos_customerName', customerName);
+    localStorage.setItem('pos_qrUsed', qrUsed);
+  }, [cart, customerName, qrUsed]);
 
   const filtered = items.filter((i) => {
     const matchCat = cat === 'all' || i.category === cat;

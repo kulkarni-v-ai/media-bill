@@ -45,66 +45,80 @@ const SectionLabel = ({ color, emoji, label, subtotal, show }) => (
 );
 
 /* ── Confirm Delete Modal ── */
-const ConfirmDeleteModal = ({ bill, onCancel, onConfirm, loading }) => (
-  <div style={{
-    position: 'fixed', inset: 0, zIndex: 1000,
-    background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  }} onClick={onCancel}>
-    <motion.div
-      initial={{ opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.92 }}
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        background: 'var(--bg2)', border: '1px solid var(--border)',
-        borderRadius: 16, padding: '28px 32px', width: 380, maxWidth: '92vw',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+const ConfirmDeleteModal = ({ bill, onCancel, onConfirm, loading }) => {
+  const [restock, setRestock] = useState(true);
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onCancel}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.92 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--bg2)', border: '1px solid var(--border)',
+          borderRadius: 16, padding: '28px 32px', width: 380, maxWidth: '92vw',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <RiAlertLine style={{ color: '#ef4444', fontSize: 20 }} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Delete Bill?</div>
+            <div style={{ fontSize: 12, color: 'var(--text3)' }}>This action cannot be undone</div>
+          </div>
+        </div>
         <div style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--card)', border: '1px solid var(--border)',
+          borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: 13,
         }}>
-          <RiAlertLine style={{ color: '#ef4444', fontSize: 20 }} />
+          <div><span style={{ color: 'var(--text3)' }}>Customer: </span><b>{bill.customerName}</b></div>
+          <div><span style={{ color: 'var(--text3)' }}>Total: </span><b style={{ color: 'var(--accent2)' }}>₹{bill.grandTotal?.toFixed(2)}</b></div>
+          
+          <div style={{ fontSize: 13, marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderTop: '1px dashed var(--border)' }}>
+            <input 
+              type="checkbox" 
+              id="restock-checkbox" 
+              checked={restock} 
+              onChange={(e) => setRestock(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: 'var(--accent)', cursor: 'pointer' }}
+            />
+            <label htmlFor="restock-checkbox" style={{ cursor: 'pointer', color: 'var(--text)', fontWeight: 600 }}>
+              Restore stock for these items
+            </label>
+          </div>
         </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>Delete Bill?</div>
-          <div style={{ fontSize: 12, color: 'var(--text3)' }}>This action cannot be undone</div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1 }}
+            onClick={onCancel}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn"
+            style={{ flex: 1, background: '#ef4444', border: 'none', color: '#fff' }}
+            onClick={() => onConfirm(restock)}
+            disabled={loading}
+          >
+            {loading ? 'Deleting…' : '🗑 Delete Bill'}
+          </button>
         </div>
-      </div>
-      <div style={{
-        background: 'var(--card)', border: '1px solid var(--border)',
-        borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: 13,
-      }}>
-        <div><span style={{ color: 'var(--text3)' }}>Customer: </span><b>{bill.customerName}</b></div>
-        <div><span style={{ color: 'var(--text3)' }}>Total: </span><b style={{ color: 'var(--accent2)' }}>₹{bill.grandTotal?.toFixed(2)}</b></div>
-        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 6 }}>
-          ⚠️ Stock will be automatically restored for all items in this bill.
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button
-          className="btn btn-ghost"
-          style={{ flex: 1 }}
-          onClick={onCancel}
-          disabled={loading}
-        >
-          Cancel
-        </button>
-        <button
-          className="btn"
-          style={{ flex: 1, background: '#ef4444', border: 'none', color: '#fff' }}
-          onClick={onConfirm}
-          disabled={loading}
-        >
-          {loading ? 'Deleting…' : '🗑 Delete Bill'}
-        </button>
-      </div>
-    </motion.div>
-  </div>
-);
+      </motion.div>
+    </div>
+  );
+};
 
 /* ── Edit Bill Modal ── */
 const EditBillModal = ({ bill, onCancel, onSaved }) => {
@@ -308,11 +322,11 @@ export default function BillExpandedView({ bill: initialBill, colSpan = 9, onDel
     hour: '2-digit', minute: '2-digit', hour12: true,
   });
 
-  const handleDelete = async () => {
+  const handleDelete = async (restock) => {
     setDeleting(true);
     try {
-      await api.delete(`/bills/${bill._id}`);
-      toast.success('Bill deleted & stock restored');
+      await api.delete(`/bills/${bill._id}?restock=${restock}`);
+      toast.success(`Bill deleted${restock ? ' & stock restored' : ''}`);
       setShowDelete(false);
       onDeleted?.(bill._id);
     } catch (err) {
