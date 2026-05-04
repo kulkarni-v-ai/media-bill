@@ -33,8 +33,8 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
         <button
           className="qty-btn"
           onClick={() => onQtyChange(item._id, item.qty + 1)}
-          disabled={item.qty >= item.stock}
-          title={item.qty >= item.stock ? 'Max stock reached' : ''}
+          disabled={!item.stockRef && item.qty >= item.stock}
+          title={!item.stockRef && item.qty >= item.stock ? 'Max stock reached' : ''}
         >+</button>
       </div>
       <button className="btn-icon" onClick={() => onRemove(item._id)} style={{ padding: '4px 6px' }}>

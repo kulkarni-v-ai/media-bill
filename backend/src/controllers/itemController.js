@@ -7,9 +7,8 @@ const getItems = async (req, res) => {
   try {
     const { category, search, all } = req.query;
 
-    // Admin can request all=true to see inactive items (like the central stock master)
-    const isAdminAll = all === 'true' && req.user.role === 'admin';
-    const filter = isAdminAll ? {} : { isActive: true };
+    // Allow all=true to return inactive items (needed by Billing for central stock master)
+    const filter = all === 'true' ? {} : { isActive: true };
 
     if (category) filter.category = category;
     if (search) filter.name = { $regex: search, $options: 'i' };
