@@ -11,7 +11,7 @@ import {
 } from 'react-icons/ri';
 
 const EMPTY_FORM = { name: '', category: 'polaroid', price: '', stock: '', lowStockThreshold: 5, piecesPerUnit: 1 };
-const CATS = ['all', 'polaroid', 'poster', 'sticker'];
+const CATS = ['all', 'polaroid', 'poster', 'sticker', 'digital_photo'];
 
 export default function Inventory() {
   const [items, setItems]           = useState([]);
@@ -261,7 +261,7 @@ export default function Inventory() {
         <div className="pill-tabs">
           {CATS.map((c) => (
             <button key={c} className={`pill-tab ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>
-              {c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1)}
+              {c === 'all' ? 'All' : c.replace('_', ' ').charAt(0).toUpperCase() + c.replace('_', ' ').slice(1)}
             </button>
           ))}
         </div>
@@ -372,6 +372,7 @@ export default function Inventory() {
             <option value="polaroid">Polaroid</option>
             <option value="poster">Poster</option>
             <option value="sticker">Sticker</option>
+            <option value="digital_photo">Digital Photo</option>
           </select>
         </div>
         {[['price', 'Price (₹)']].map(([f, label]) => (

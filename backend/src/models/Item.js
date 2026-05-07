@@ -9,7 +9,7 @@ const itemSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['polaroid', 'poster', 'sticker'],
+      enum: ['polaroid', 'poster', 'sticker', 'digital_photo'],
       required: [true, 'Category is required'],
     },
     price: {
