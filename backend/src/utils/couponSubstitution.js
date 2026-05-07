@@ -2,11 +2,10 @@
  * couponSubstitution.js
  * Handles specific dice game offer logic.
  * These offers "substitute" the prices of items in the cart.
- * UPDATE: Always targets the CHEAPEST eligible items to avoid loss.
+ * Targets the CHEAPEST eligible items.
  */
 
 const applySubstitution = (lineItems, offerType) => {
-  let discount = 0;
   // Sort items by unitPrice ASCENDING to target cheapest items first
   const items = [...lineItems].sort((a, b) => a.unitPrice - b.unitPrice);
 
@@ -14,11 +13,11 @@ const applySubstitution = (lineItems, offerType) => {
     case 'DICE_1_1': {
       // Get Another/Next polaroid at 99/- (Only for Single Polaroids)
       const allPolaroids = items.filter(i => i.category === 'polaroid');
-      const singlePolaroid = allPolaroids.find(p => p.unitPrice > 99 && (p.name.toLowerCase().includes('single') || p.piecesPerUnit === 1));
+      const single = items.find(p => p.category === 'polaroid' && p.unitPrice > 99 && (p.name.toLowerCase().includes('single') || p.piecesPerUnit === 1));
       
-      // Must have at least 2 polaroid "units" total to qualify for "Another"
-      if (allPolaroids.length >= 2 && singlePolaroid) {
-        discount = singlePolaroid.unitPrice - 99;
+      if (allPolaroids.length >= 2 && single) {
+        single.unitPrice = 99;
+        single.subtotal = 99;
       }
       break;
     }
@@ -28,7 +27,11 @@ const applySubstitution = (lineItems, offerType) => {
       const p1 = items.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
       const p2 = items.find(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
       if (p1 && p2) {
-        discount = (p1.unitPrice + p2.unitPrice) - 229;
+        // We set p1 to 229 and p2 to 0 (effectively total 229)
+        p1.unitPrice = 229;
+        p1.subtotal = 229;
+        p2.unitPrice = 0;
+        p2.subtotal = 0;
       }
       break;
     }
@@ -37,8 +40,12 @@ const applySubstitution = (lineItems, offerType) => {
       // Get 3 Digital Photos at 99/-
       const digitals = items.filter(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
       if (digitals.length >= 3) {
-        const currentSum = digitals.slice(0, 3).reduce((s, i) => s + i.unitPrice, 0);
-        discount = currentSum - 99;
+        digitals[0].unitPrice = 99;
+        digitals[0].subtotal = 99;
+        digitals[1].unitPrice = 0;
+        digitals[1].subtotal = 0;
+        digitals[2].unitPrice = 0;
+        digitals[2].subtotal = 0;
       }
       break;
     }
@@ -47,8 +54,10 @@ const applySubstitution = (lineItems, offerType) => {
       // Pack of 2 Customized Polaroids at ₹222
       const customized = items.filter(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
       if (customized.length >= 2) {
-        const currentSum = customized.slice(0, 2).reduce((s, i) => s + i.unitPrice, 0);
-        discount = currentSum - 222;
+        customized[0].unitPrice = 222;
+        customized[0].subtotal = 222;
+        customized[1].unitPrice = 0;
+        customized[1].subtotal = 0;
       }
       break;
     }
@@ -58,7 +67,10 @@ const applySubstitution = (lineItems, offerType) => {
       const polaroid = items.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
       const digital = items.find(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
       if (polaroid && digital) {
-        discount = (polaroid.unitPrice + digital.unitPrice) - 125;
+        polaroid.unitPrice = 125;
+        polaroid.subtotal = 125;
+        digital.unitPrice = 0;
+        digital.subtotal = 0;
       }
       break;
     }
@@ -67,7 +79,8 @@ const applySubstitution = (lineItems, offerType) => {
       // Get a polaroid at 99/- in purchase
       const polaroid = items.find(i => i.category === 'polaroid');
       if (polaroid) {
-        discount = polaroid.unitPrice - 99;
+        polaroid.unitPrice = 99;
+        polaroid.subtotal = 99;
       }
       break;
     }
@@ -76,7 +89,7 @@ const applySubstitution = (lineItems, offerType) => {
       break;
   }
 
-  return Math.max(0, discount);
+  return items;
 };
 
 module.exports = { applySubstitution };

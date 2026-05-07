@@ -5,15 +5,9 @@ const calculateBill = (cartItems, coupon = null) => {
   let othersTotal = 0;
   let discountAmount = 0;
 
-  const lineItems = cartItems.map((ci) => {
+  // Initial map to get base line items
+  let lineItems = cartItems.map((ci) => {
     const subtotal = parseFloat((ci.unitPrice * ci.qty).toFixed(2));
-
-    if (ci.category === 'polaroid') {
-      polaroidTotal += subtotal;
-    } else {
-      othersTotal += subtotal;
-    }
-
     return {
       item: ci.itemId,
       name: ci.name,
@@ -21,27 +15,55 @@ const calculateBill = (cartItems, coupon = null) => {
       unitPrice: ci.unitPrice,
       qty: ci.qty,
       subtotal,
+      piecesPerUnit: ci.piecesPerUnit || 1
     };
   });
 
-  polaroidTotal = parseFloat(polaroidTotal.toFixed(2));
-  othersTotal = parseFloat(othersTotal.toFixed(2));
-  let grandTotal = parseFloat((polaroidTotal + othersTotal).toFixed(2));
-
   if (coupon) {
-    const flatItems = [];
+    // Flatten line items for substitution logic (expanding qty)
+    let flatItems = [];
     lineItems.forEach(li => {
       for (let i = 0; i < li.qty; i++) {
         flatItems.push({ ...li, qty: 1 });
       }
     });
 
-    discountAmount = applySubstitution(flatItems, coupon.offerType);
-    discountAmount = parseFloat(discountAmount.toFixed(2));
-    grandTotal = Math.max(0, parseFloat((grandTotal - discountAmount).toFixed(2)));
+    // Apply substitution (this now modifies the items in flatItems)
+    flatItems = applySubstitution(flatItems, coupon.offerType);
+
+    // Re-group flat items back into line items to preserve the structure
+    // But since the bill model expects the original items, we just use the flattened ones 
+    // to calculate the new totals.
+    
+    // Calculate new totals from modified flat items
+    polaroidTotal = 0;
+    othersTotal = 0;
+    flatItems.forEach(fi => {
+      if (fi.category === 'polaroid') {
+        polaroidTotal += fi.subtotal;
+      } else {
+        othersTotal += fi.subtotal;
+      }
+    });
+
+    // We replace lineItems with the modified ones for saving to DB
+    lineItems = flatItems;
+  } else {
+    // Standard total calculation if no coupon
+    lineItems.forEach(li => {
+      if (li.category === 'polaroid') {
+        polaroidTotal += li.subtotal;
+      } else {
+        othersTotal += li.subtotal;
+      }
+    });
   }
 
-  return { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount };
+  polaroidTotal = parseFloat(polaroidTotal.toFixed(2));
+  othersTotal = parseFloat(othersTotal.toFixed(2));
+  let grandTotal = parseFloat((polaroidTotal + othersTotal).toFixed(2));
+
+  return { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount: 0 };
 };
 
 module.exports = { calculateBill };
