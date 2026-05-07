@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import {
-  RiShoppingCartLine, RiStackLine, RiMoneyDollarCircleLine,
+  RiShoppingCartLine, RiStackLine, RiCoinsLine,
   RiAlertLine, RiTeamLine, RiArrowRightLine, RiReceiptLine,
   RiQrCodeLine, RiUserLine, RiTimeLine, RiArrowDownSLine, RiArrowUpSLine,
 } from 'react-icons/ri';
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
 
       {/* ── Stat Cards ── */}
       <div className="grid-4 mb-16">
-        <StatCard icon={<RiMoneyDollarCircleLine />} label="Today's Revenue"  value={`₹${report?.totalRevenue ?? '—'}`}       color="var(--accent2)" delay={0}    />
+        <StatCard icon={<RiCoinsLine />} label="Today's Revenue"  value={`₹${report?.totalRevenue ?? '—'}`}       color="var(--accent2)" delay={0}    />
         <StatCard icon={<RiShoppingCartLine />}      label="Bills Today"       value={report?.totalBills ?? '—'}                color="var(--cyan2)"   delay={0.05} />
         <StatCard icon={<RiStackLine />}             label="Low Stock Items"   value={lowStock.length}                          color="var(--yellow)"  delay={0.1}  />
         <StatCard icon={<RiAlertLine />}             label="Out of Stock"      value={lowStock.filter(i => i.stock === 0).length} color="var(--red)"   delay={0.15} />
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                             color: QR_COLORS[bill.qrUsed] ?? 'var(--text2)',
                             border: `1px solid ${QR_COLORS[bill.qrUsed] ?? 'var(--border)'}55`,
                           }}>
-                            {bill.qrUsed === 'CASH' ? <RiMoneyDollarCircleLine style={{ marginRight: 4, verticalAlign: 'middle' }} /> : <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />}
+                            {bill.qrUsed === 'CASH' ? <RiCoinsLine style={{ marginRight: 4, verticalAlign: 'middle' }} /> : <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />}
                             {bill.qrUsed}
                           </span>
                         </td>

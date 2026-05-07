@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   RiReceiptLine, RiUserLine, RiTimeLine,
   RiQrCodeLine, RiArrowDownSLine, RiArrowUpSLine,
-  RiDownloadLine,
+  RiDownloadLine, RiCoinsLine,
 } from 'react-icons/ri';
 import toast from 'react-hot-toast';
 import BillExpandedView from '../components/billing/BillExpandedView';
@@ -336,7 +336,7 @@ export default function BillsHistory() {
                             color: QR_COLORS[bill.qrUsed] ?? 'var(--text2)',
                             border: `1px solid ${QR_COLORS[bill.qrUsed] ?? 'var(--border)'}55`,
                           }}>
-                            {bill.qrUsed === 'CASH' ? <RiMoneyDollarCircleLine style={{ marginRight: 4, verticalAlign: 'middle' }} /> : <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />}
+                            {bill.qrUsed === 'CASH' ? <RiCoinsLine style={{ marginRight: 4, verticalAlign: 'middle' }} /> : <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />}
                             {bill.qrUsed}
                           </span>
                         </td>
