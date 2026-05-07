@@ -247,7 +247,7 @@ tbody tr:last-child td { border-bottom: none; }
 .total-row.grand .total-val { color: var(--accent2); }
 
 /* ── QR Selector ── */
-.qr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.qr-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0; }
 .qr-card {
   padding: 12px 8px; border-radius: 10px; border: 2px solid var(--border); background: var(--bg2);
   text-align: center; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 700; color: var(--text2);

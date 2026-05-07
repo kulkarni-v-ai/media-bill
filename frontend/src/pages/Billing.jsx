@@ -226,16 +226,18 @@ export default function Billing() {
             </div>
 
             <div className="cart-footer">
-              <div className="form-group" style={{ marginBottom: 8 }}>
-                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  Dice Offers (Physical Dice)
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 12 }}>
+              <BillTotals cart={cart} coupon={appliedCoupon} />
+              
+              <div className="divider" />
+              
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label">Dice Offers & Coupons</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4, marginBottom: 8 }}>
                   {['1+1', '2+2', '3+3', '4+4', '5+5', '6+6'].map(roll => (
                     <button 
                       key={roll} 
                       className={`btn btn-ghost btn-sm ${appliedCoupon?.offerType.includes(roll.replace('+', '_')) ? 'active' : ''}`}
-                      style={{ fontSize: 11, padding: '4px' }}
+                      style={{ fontSize: 10, padding: '4px 0', justifyContent: 'center' }}
                       onClick={() => handleApplyOffer(roll)}
                       disabled={!!appliedCoupon}
                     >
@@ -244,12 +246,12 @@ export default function Billing() {
                   ))}
                 </div>
                 
-                <label className="form-label">Manual Coupon</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input 
-                    className="form-input" placeholder="Enter code" 
+                    className="form-input" placeholder="Coupon Code" 
                     value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     disabled={!!appliedCoupon}
+                    style={{ flex: 1 }}
                   />
                   {!appliedCoupon ? (
                     <button className="btn btn-ghost btn-sm" onClick={validateCouponCode}>Apply</button>
@@ -258,14 +260,12 @@ export default function Billing() {
                   )}
                 </div>
                 {appliedCoupon && (
-                  <div style={{ fontSize: 11, color: 'var(--green)', marginTop: 4 }}>
-                    Applied: {appliedCoupon.description}
+                  <div style={{ fontSize: 11, color: 'var(--green)', marginTop: 4, fontWeight: 600 }}>
+                    ✨ {appliedCoupon.description}
                   </div>
                 )}
               </div>
 
-              <BillTotals cart={cart} coupon={appliedCoupon} />
-              <div className="divider" />
               <div className="form-group">
                 <label className="form-label">Customer Name</label>
                 <input
@@ -273,7 +273,9 @@ export default function Billing() {
                   value={customerName} onChange={(e) => setCustomerName(e.target.value)}
                 />
               </div>
+              
               <QRSelector selected={qrUsed} onChange={setQrUsed} />
+              
               <motion.button
                 className="btn btn-primary btn-full btn-lg"
                 style={{ marginTop: 12 }}

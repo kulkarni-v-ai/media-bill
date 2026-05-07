@@ -11,8 +11,8 @@ const QR_COLORS = {
 
 export default function QRSelector({ selected, onChange }) {
   return (
-    <div>
-      <p className="form-label">Payment Method</p>
+    <div style={{ marginTop: 12 }}>
+      <p className="form-label">Payment Method / QR</p>
       <div className="qr-grid">
         {QR_OPTIONS.map((qr) => (
           <motion.button
