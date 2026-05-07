@@ -43,8 +43,7 @@ const applySubstitution = (lineItems, offerType) => {
 
     case 'DICE_3_3': {
       // Get 3 Digital Photos at 99/-
-      // Assuming 'Digital Photo' is a category or name
-      const digitals = items.filter(i => i.name.toLowerCase().includes('digital') || i.category === 'digital');
+      const digitals = items.filter(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
       if (digitals.length >= 3) {
         const currentSum = digitals.slice(0, 3).reduce((s, i) => s + i.unitPrice, 0);
         discount = currentSum - 99;
@@ -54,7 +53,7 @@ const applySubstitution = (lineItems, offerType) => {
 
     case 'DICE_4_4': {
       // Pack of 2 Customized Polaroids at ₹222
-      const customized = items.filter(i => i.name.toLowerCase().includes('customized'));
+      const customized = items.filter(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
       if (customized.length >= 2) {
         const currentSum = customized.slice(0, 2).reduce((s, i) => s + i.unitPrice, 0);
         discount = currentSum - 222;
@@ -63,11 +62,11 @@ const applySubstitution = (lineItems, offerType) => {
     }
 
     case 'DICE_5_5': {
-      // 1 Normal + 1 Digital at ₹125
-      const normal = items.find(i => !i.name.toLowerCase().includes('customized') && !i.name.toLowerCase().includes('digital'));
-      const digital = items.find(i => i.name.toLowerCase().includes('digital'));
-      if (normal && digital) {
-        discount = (normal.unitPrice + digital.unitPrice) - 125;
+      // 1 Normal (Polaroid) + 1 Digital at ₹125
+      const polaroid = items.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
+      const digital = items.find(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
+      if (polaroid && digital) {
+        discount = (polaroid.unitPrice + digital.unitPrice) - 125;
       }
       break;
     }
