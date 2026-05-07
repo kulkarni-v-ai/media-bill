@@ -21,6 +21,8 @@ export default function Billing() {
   const [qrUsed, setQrUsed]           = useState(() => localStorage.getItem('pos_qrUsed') || '');
   const [submitting, setSubmitting]   = useState(false);
   const [lastBill, setLastBill]       = useState(null);
+  const [couponCode, setCouponCode]   = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // Validated coupon details
   const printRef = useRef();
 
   const fetchItems = () => {
@@ -86,7 +88,7 @@ export default function Billing() {
   const handleSubmit = async () => {
     if (!customerName.trim()) { toast.error('Enter customer name'); return; }
     if (cart.length === 0) { toast.error('Add at least one item'); return; }
-    if (!qrUsed) { toast.error('Select a payment QR'); return; }
+    if (!qrUsed) { toast.error('Select a payment method'); return; }
 
     setSubmitting(true);
     try {
@@ -94,11 +96,14 @@ export default function Billing() {
         customerName: customerName.trim(),
         cartItems: cart.map((c) => ({ itemId: c._id, qty: c.qty })),
         qrUsed,
+        couponCode: appliedCoupon?.code,
       };
       const { data } = await api.post('/bills', payload);
       setLastBill(data);
       toast.success('Bill created successfully!');
       clearCart();
+      setCouponCode('');
+      setAppliedCoupon(null);
       fetchItems(); // refresh stock
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to create bill';
@@ -107,6 +112,29 @@ export default function Billing() {
         fetchItems(); // refresh stock display
       }
     } finally { setSubmitting(false); }
+  };
+  
+  const validateCouponCode = async () => {
+    if (!couponCode) return;
+    try {
+      const { data } = await api.get(`/coupons/validate/${couponCode}`);
+      setAppliedCoupon(data);
+      toast.success('Coupon applied!');
+    } catch (err) {
+      toast.error('Invalid coupon code');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const handleApplyOffer = async (roll) => {
+    try {
+      const { data } = await api.post('/coupons/generate', { diceRoll: roll });
+      setAppliedCoupon(data);
+      setCouponCode(data.code);
+      toast.success(`Applied ${roll} Offer!`);
+    } catch (err) {
+      toast.error('Failed to apply offer');
+    }
   };
 
   const handlePrint = () => window.print();
@@ -198,7 +226,45 @@ export default function Billing() {
             </div>
 
             <div className="cart-footer">
-              <BillTotals cart={cart} />
+              <div className="form-group" style={{ marginBottom: 8 }}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  Dice Offers (Physical Dice)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 12 }}>
+                  {['1+1', '2+2', '3+3', '4+4', '5+5', '6+6'].map(roll => (
+                    <button 
+                      key={roll} 
+                      className={`btn btn-ghost btn-sm ${appliedCoupon?.offerType.includes(roll.replace('+', '_')) ? 'active' : ''}`}
+                      style={{ fontSize: 11, padding: '4px' }}
+                      onClick={() => handleApplyOffer(roll)}
+                      disabled={!!appliedCoupon}
+                    >
+                      {roll}
+                    </button>
+                  ))}
+                </div>
+                
+                <label className="form-label">Manual Coupon</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input 
+                    className="form-input" placeholder="Enter code" 
+                    value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    disabled={!!appliedCoupon}
+                  />
+                  {!appliedCoupon ? (
+                    <button className="btn btn-ghost btn-sm" onClick={validateCouponCode}>Apply</button>
+                  ) : (
+                    <button className="btn btn-danger btn-sm" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }}>Remove</button>
+                  )}
+                </div>
+                {appliedCoupon && (
+                  <div style={{ fontSize: 11, color: 'var(--green)', marginTop: 4 }}>
+                    Applied: {appliedCoupon.description}
+                  </div>
+                )}
+              </div>
+
+              <BillTotals cart={cart} coupon={appliedCoupon} />
               <div className="divider" />
               <div className="form-group">
                 <label className="form-label">Customer Name</label>

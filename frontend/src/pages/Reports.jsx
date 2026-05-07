@@ -4,7 +4,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const QR_COLORS = { QR1: '#7c3aed', QR2: '#06b6d4', QR3: '#10b981', QR4: '#f59e0b' };
+const QR_COLORS = { QR1: '#7c3aed', QR2: '#06b6d4', QR3: '#10b981', QR4: '#f59e0b', CASH: '#10b981' };
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
@@ -71,7 +71,7 @@ export default function Reports() {
             </motion.div>
 
             <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-              <h3 style={{ marginBottom: 16, fontWeight: 700 }}>QR-Wise Revenue</h3>
+            <h3 style={{ marginBottom: 16, fontWeight: 700 }}>Payment Breakdown</h3>
               {report.qrBreakdown?.filter(q => q.total > 0).length === 0
                 ? <p style={{ color: 'var(--text3)', fontSize: 13 }}>No transactions today</p>
                 : report.qrBreakdown?.map((qr) => (

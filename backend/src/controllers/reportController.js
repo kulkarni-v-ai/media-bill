@@ -17,8 +17,8 @@ const getDailyReport = async (req, res) => {
     const totalBills = bills.length;
 
     // QR-wise breakdown
-    const qrBreakdown = { QR1: 0, QR2: 0, QR3: 0, QR4: 0 };
-    const qrCount = { QR1: 0, QR2: 0, QR3: 0, QR4: 0 };
+    const qrBreakdown = { QR1: 0, QR2: 0, QR3: 0, QR4: 0, CASH: 0 };
+    const qrCount = { QR1: 0, QR2: 0, QR3: 0, QR4: 0, CASH: 0 };
 
     bills.forEach((b) => {
       if (qrBreakdown[b.qrUsed] !== undefined) {

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useAuth } from '../../context/AuthContext';
+import { estimateDiscount } from '../../utils/couponEstimator';
 
 export default function BillSummary({ cart, onQtyChange, onRemove }) {
   const { user } = useAuth();
@@ -74,22 +75,31 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
   );
 }
 
-export const BillTotals = ({ cart }) => {
+export const BillTotals = ({ cart, coupon }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const polaroids = cart.filter((i) => i.category === 'polaroid');
   const others = cart.filter((i) => i.category !== 'polaroid');
   const polaroidTotal = polaroids.reduce((s, i) => s + i.price * i.qty, 0);
   const othersTotal = others.reduce((s, i) => s + i.price * i.qty, 0);
-  const grandTotal = polaroidTotal + othersTotal;
+  const subtotal = polaroidTotal + othersTotal;
+  
+  const discount = estimateDiscount(cart, coupon);
+  const grandTotal = Math.max(0, subtotal - discount);
 
   return (
     <div>
-      {isAdmin && grandTotal > 0 && (
+      {isAdmin && subtotal > 0 && (
         <>
           <div className="total-row"><span style={{ color: 'var(--text3)' }}>Polaroids</span><span>₹{polaroidTotal.toFixed(2)}</span></div>
           <div className="total-row"><span style={{ color: 'var(--text3)' }}>Others</span><span>₹{othersTotal.toFixed(2)}</span></div>
         </>
+      )}
+      {discount > 0 && (
+        <div className="total-row">
+          <span style={{ color: 'var(--green)' }}>Discount ({coupon.code})</span>
+          <span style={{ color: 'var(--green)' }}>−₹{discount.toFixed(2)}</span>
+        </div>
       )}
       <div className="total-row grand">
         <span>Grand Total</span>

@@ -21,9 +21,10 @@ app.use(express.json());
 
 // API Routes
 app.use('/api/auth',    authRoutes);
-app.use('/api/items',   itemRoutes);
-app.use('/api/bills',   billRoutes);
-app.use('/api/reports', reportRoutes);
+app.use('/api/items', require('./routes/items'));
+app.use('/api/bills', require('./routes/bills'));
+app.use('/api/reports', require('./routes/reports'));
+app.use('/api/coupons', require('./routes/coupons'));
 app.use('/api/users',   userRoutes);
 
 // Health check

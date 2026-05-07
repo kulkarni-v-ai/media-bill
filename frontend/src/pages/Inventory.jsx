@@ -223,17 +223,30 @@ export default function Inventory() {
               )}
             </div>
             {isAdmin && (
-              <motion.button
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
-                className="btn btn-primary"
-                style={{
-                  background: 'var(--yellow)', borderColor: 'var(--yellow)', color: '#000',
-                  display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700,
-                }}
-                onClick={() => openAddStock(centralMaster)}
-              >
-                <RiStackLine /> Restock
-              </motion.button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
+                  className="btn btn-ghost"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700,
+                    color: 'var(--text)', background: 'var(--bg2)'
+                  }}
+                  onClick={() => openEdit(centralMaster)}
+                >
+                  <RiPencilLine /> Edit
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
+                  className="btn btn-primary"
+                  style={{
+                    background: 'var(--yellow)', borderColor: 'var(--yellow)', color: '#000',
+                    display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700,
+                  }}
+                  onClick={() => openAddStock(centralMaster)}
+                >
+                  <RiStackLine /> Restock
+                </motion.button>
+              </div>
             )}
           </div>
         </motion.div>
@@ -368,7 +381,7 @@ export default function Inventory() {
           </div>
         ))}
 
-        {form.category !== 'polaroid' && [['stock', 'Stock Quantity'], ['lowStockThreshold', 'Low Stock Threshold']].map(([f, label]) => (
+        {(form.category !== 'polaroid' || editing?._id === centralMaster?._id) && [['stock', 'Stock Quantity'], ['lowStockThreshold', 'Low Stock Threshold']].map(([f, label]) => (
           <div className="form-group" key={f}>
             <label className="form-label">{label}</label>
             <input className="form-input" type="number" value={form[f]} onChange={(e) => setForm({ ...form, [f]: e.target.value })} min="0" />

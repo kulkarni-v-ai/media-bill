@@ -1,5 +1,6 @@
 const Bill = require('../models/Bill');
 const Item = require('../models/Item');
+const Coupon = require('../models/Coupon');
 const { calculateBill } = require('../utils/billCalculator');
 
 /* ─────────────────────────────────────────────────────────────────
@@ -28,7 +29,7 @@ async function resolveStock(item, qty) {
 // @route POST /api/bills
 const createBill = async (req, res) => {
   try {
-    const { customerName, cartItems, qrUsed } = req.body;
+    const { customerName, cartItems, qrUsed, couponCode } = req.body;
 
     if (!customerName || !cartItems || cartItems.length === 0 || !qrUsed) {
       return res.status(400).json({ message: 'customerName, cartItems, and qrUsed are required' });
@@ -77,9 +78,16 @@ const createBill = async (req, res) => {
       });
     }
 
+    // Fetch coupon if provided
+    let coupon = null;
+    if (couponCode) {
+      coupon = await Coupon.findOne({ code: couponCode, isUsed: false });
+    }
+
     // Calculate totals using isolated utility
-    const { polaroidTotal, othersTotal, grandTotal, lineItems } = calculateBill(
-      enrichedCart.map((c) => ({ ...c, itemId: c.itemId }))
+    const { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount } = calculateBill(
+      enrichedCart.map((c) => ({ ...c, itemId: c.itemId })),
+      coupon
     );
 
     // Reduce stock atomically (via the resolved stockItem)
@@ -95,7 +103,17 @@ const createBill = async (req, res) => {
       othersTotal,
       grandTotal,
       qrUsed,
+      couponCode: coupon ? coupon.code : undefined,
+      discountAmount,
     });
+
+    // Mark coupon as used
+    if (coupon) {
+      coupon.isUsed = true;
+      coupon.customerName = customerName;
+      coupon.appliedBill = bill._id;
+      await coupon.save();
+    }
 
     await bill.populate('createdBy', 'name email role');
 

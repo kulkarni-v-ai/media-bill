@@ -44,10 +44,12 @@ const billSchema = new mongoose.Schema(
     grandTotal: { type: Number, required: true },
     qrUsed: {
       type: String,
-      enum: ['QR1', 'QR2', 'QR3', 'QR4'],
+      enum: ['QR1', 'QR2', 'QR3', 'QR4', 'CASH'],
       required: [true, 'QR selection is required'],
     },
     isPrinted: { type: Boolean, default: false },
+    couponCode: { type: String, trim: true },
+    discountAmount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

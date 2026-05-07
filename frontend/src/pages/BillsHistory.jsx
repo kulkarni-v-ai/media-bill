@@ -10,7 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import BillExpandedView from '../components/billing/BillExpandedView';
 
-const QR_COLORS = { QR1: 'var(--accent)', QR2: 'var(--cyan2)', QR3: 'var(--green)', QR4: 'var(--yellow)' };
+const QR_COLORS = { QR1: 'var(--accent)', QR2: 'var(--cyan2)', QR3: 'var(--green)', QR4: 'var(--yellow)', CASH: 'var(--green)' };
 const CAT_COLOR  = { polaroid: 'var(--yellow)', poster: 'var(--cyan2)', sticker: 'var(--accent)' };
 const LIMIT = 15;
 
@@ -236,7 +236,7 @@ export default function BillsHistory() {
           style={{ width: 140 }}
         >
           <option value="">All QRs</option>
-          {['QR1', 'QR2', 'QR3', 'QR4'].map((q) => (
+          {['QR1', 'QR2', 'QR3', 'QR4', 'CASH'].map((q) => (
             <option key={q} value={q}>{q}</option>
           ))}
         </select>
@@ -336,7 +336,7 @@ export default function BillsHistory() {
                             color: QR_COLORS[bill.qrUsed] ?? 'var(--text2)',
                             border: `1px solid ${QR_COLORS[bill.qrUsed] ?? 'var(--border)'}55`,
                           }}>
-                            <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                            {bill.qrUsed === 'CASH' ? <RiMoneyDollarCircleLine style={{ marginRight: 4, verticalAlign: 'middle' }} /> : <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />}
                             {bill.qrUsed}
                           </span>
                         </td>

@@ -216,7 +216,7 @@ const EditBillModal = ({ bill, onCancel, onSaved }) => {
             onChange={(e) => setQrUsed(e.target.value)}
             style={{ width: '100%' }}
           >
-            {['QR1', 'QR2', 'QR3', 'QR4'].map((q) => (
+            {['QR1', 'QR2', 'QR3', 'QR4', 'CASH'].map((q) => (
               <option key={q} value={q}>{q}</option>
             ))}
           </select>

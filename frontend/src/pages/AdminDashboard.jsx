@@ -10,7 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import BillExpandedView from '../components/billing/BillExpandedView';
 
-const QR_COLORS = { QR1: 'var(--accent)', QR2: 'var(--cyan2)', QR3: 'var(--green)', QR4: 'var(--yellow)' };
+const QR_COLORS = { QR1: 'var(--accent)', QR2: 'var(--cyan2)', QR3: 'var(--green)', QR4: 'var(--yellow)', CASH: 'var(--green)' };
 
 const StatCard = ({ icon, label, value, color, delay }) => (
   <motion.div className="stat-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-            <h3 style={{ marginBottom: 16, fontWeight: 700 }}>📱 QR Breakdown</h3>
+            <h3 style={{ marginBottom: 16, fontWeight: 700 }}>📱 Payment Breakdown</h3>
             {report.qrBreakdown?.map((qr) => (
               <div key={qr.qr} className="total-row" style={{ marginBottom: 6 }}>
                 <span style={{ color: 'var(--text3)' }}>{qr.qr} <span style={{ fontSize: 11 }}>({qr.count} bills)</span></span>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                             color: QR_COLORS[bill.qrUsed] ?? 'var(--text2)',
                             border: `1px solid ${QR_COLORS[bill.qrUsed] ?? 'var(--border)'}55`,
                           }}>
-                            <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                            {bill.qrUsed === 'CASH' ? <RiMoneyDollarCircleLine style={{ marginRight: 4, verticalAlign: 'middle' }} /> : <RiQrCodeLine style={{ marginRight: 4, verticalAlign: 'middle' }} />}
                             {bill.qrUsed}
                           </span>
                         </td>
