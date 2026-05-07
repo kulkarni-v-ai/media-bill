@@ -1,69 +1,93 @@
 /**
  * couponEstimator.js
- * Mirrors backend substitution logic to show estimated savings in the UI.
+ * Identifies which items are discounted to show original vs reduced price in the UI.
  * Targets the CHEAPEST items to avoid business loss.
  */
 
-export const estimateDiscount = (cart, coupon) => {
-  if (!coupon) return 0;
+export const getDiscountedCart = (cart, coupon) => {
+  if (!coupon) return cart.map(item => ({ ...item, discountedPrice: item.price }));
   
-  // Flatten and sort by unitPrice ASCENDING
-  const items = [];
+  // Create a flat list of individual items to apply offers to
+  let flatItems = [];
   cart.forEach(c => {
     for (let i = 0; i < c.qty; i++) {
-      items.push({ ...c, unitPrice: c.price });
+      flatItems.push({ ...c, unitPrice: c.price, originalPrice: c.price, discountedPrice: c.price });
     }
   });
-  items.sort((a, b) => a.unitPrice - b.unitPrice);
+
+  // Sort by unitPrice ASCENDING to target cheapest items first
+  flatItems.sort((a, b) => a.unitPrice - b.unitPrice);
 
   const offerType = coupon.offerType;
-  let discount = 0;
 
   switch (offerType) {
     case 'DICE_1_1': {
-      const allPolaroids = items.filter(i => i.category === 'polaroid');
-      const single = items.find(p => p.category === 'polaroid' && p.unitPrice > 99 && (p.name.toLowerCase().includes('single') || p.piecesPerUnit === 1));
+      const allPolaroids = flatItems.filter(i => i.category === 'polaroid');
+      const single = flatItems.find(p => p.category === 'polaroid' && p.unitPrice > 99 && (p.name.toLowerCase().includes('single') || p.piecesPerUnit === 1));
       if (allPolaroids.length >= 2 && single) {
-        discount = single.unitPrice - 99;
+        single.discountedPrice = 99;
       }
       break;
     }
     case 'DICE_2_2': {
-      const p1 = items.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
-      const p2 = items.find(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
-      if (p1 && p2) discount = (p1.unitPrice + p2.unitPrice) - 229;
+      const p1 = flatItems.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
+      const p2 = flatItems.find(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
+      if (p1 && p2) {
+        p1.discountedPrice = 229;
+        p2.discountedPrice = 0;
+      }
       break;
     }
     case 'DICE_3_3': {
-      const digitals = items.filter(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
+      const digitals = flatItems.filter(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
       if (digitals.length >= 3) {
-        const currentSum = digitals.slice(0, 3).reduce((s, i) => s + i.unitPrice, 0);
-        discount = currentSum - 99;
+        digitals[0].discountedPrice = 99;
+        digitals[1].discountedPrice = 0;
+        digitals[2].discountedPrice = 0;
       }
       break;
     }
     case 'DICE_4_4': {
-      const customized = items.filter(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
+      const customized = flatItems.filter(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
       if (customized.length >= 2) {
-        const currentSum = customized.slice(0, 2).reduce((s, i) => s + i.unitPrice, 0);
-        discount = currentSum - 222;
+        customized[0].discountedPrice = 222;
+        customized[1].discountedPrice = 0;
       }
       break;
     }
     case 'DICE_5_5': {
-      const polaroid = items.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
-      const digital = items.find(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
-      if (polaroid && digital) discount = (polaroid.unitPrice + digital.unitPrice) - 125;
+      const polaroid = flatItems.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
+      const digital = flatItems.find(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
+      if (polaroid && digital) {
+        polaroid.discountedPrice = 125;
+        digital.discountedPrice = 0;
+      }
       break;
     }
     case 'DICE_6_6': {
-      const polaroid = items.find(i => i.category === 'polaroid');
-      if (polaroid) discount = polaroid.unitPrice - 99;
+      const polaroid = flatItems.find(i => i.category === 'polaroid');
+      if (polaroid) {
+        polaroid.discountedPrice = 99;
+      }
       break;
     }
     default:
       break;
   }
 
-  return Math.max(0, discount);
+  // Group back into cart items, keeping track of total discounted price vs original
+  const resultCart = cart.map(cartItem => {
+    const itemInstances = flatItems.filter(fi => fi._id === cartItem._id);
+    const totalDiscounted = itemInstances.reduce((sum, fi) => sum + fi.discountedPrice, 0);
+    const totalOriginal = itemInstances.reduce((sum, fi) => sum + fi.originalPrice, 0);
+    
+    return {
+      ...cartItem,
+      totalDiscounted,
+      totalOriginal,
+      hasDiscount: totalDiscounted < totalOriginal
+    };
+  });
+
+  return resultCart;
 };

@@ -1,19 +1,20 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useAuth } from '../../context/AuthContext';
-import { estimateDiscount } from '../../utils/couponEstimator';
+import { getDiscountedCart } from '../../utils/couponEstimator';
 
-export default function BillSummary({ cart, onQtyChange, onRemove }) {
+export default function BillSummary({ cart, onQtyChange, onRemove, coupon }) {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const polaroids = cart.filter((i) => i.category === 'polaroid');
-  const others = cart.filter((i) => i.category !== 'polaroid');
+  // Apply offer logic to get discounted prices for display
+  const discountedCart = getDiscountedCart(cart, coupon);
 
-  const polaroidQty   = polaroids.reduce((s, i) => s + i.qty, 0);
-  const polaroidTotal = polaroids.reduce((s, i) => s + i.price * i.qty, 0);
-  const othersTotal   = others.reduce((s, i) => s + i.price * i.qty, 0);
-  const grandTotal    = polaroidTotal + othersTotal;
+  const polaroids = discountedCart.filter((i) => i.category === 'polaroid');
+  const others = discountedCart.filter((i) => i.category !== 'polaroid');
+
+  const polaroidTotal = polaroids.reduce((s, i) => s + i.totalDiscounted, 0);
+  const othersTotal = others.reduce((s, i) => s + i.totalDiscounted, 0);
 
   const renderLine = (item) => (
     <motion.div
@@ -21,12 +22,24 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
       className="cart-line"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
       layout
     >
       <div className="cart-line-info">
         <div className="cart-line-name">{item.name}</div>
-        <div className="cart-line-price">₹{item.price} × {item.qty} = ₹{(item.price * item.qty).toFixed(2)}</div>
+        <div className="cart-line-price">
+          {item.hasDiscount ? (
+            <>
+              <span style={{ textDecoration: 'line-through', color: 'var(--text3)', marginRight: 8, fontSize: '0.85rem' }}>
+                ₹{item.totalOriginal.toFixed(2)}
+              </span>
+              <span style={{ color: 'var(--green)', fontWeight: 600 }}>
+                ₹{item.totalDiscounted.toFixed(2)}
+              </span>
+            </>
+          ) : (
+            <span>₹{item.totalOriginal.toFixed(2)}</span>
+          )}
+        </div>
       </div>
       <div className="qty-ctrl">
         <button className="qty-btn" onClick={() => onQtyChange(item._id, item.qty - 1)}>−</button>
@@ -35,10 +48,9 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
           className="qty-btn"
           onClick={() => onQtyChange(item._id, item.qty + 1)}
           disabled={!item.stockRef && item.qty >= item.stock}
-          title={!item.stockRef && item.qty >= item.stock ? 'Max stock reached' : ''}
         >+</button>
       </div>
-      <button className="btn-icon" onClick={() => onRemove(item._id)} style={{ padding: '4px 6px' }}>
+      <button className="btn-icon" onClick={() => onRemove(item._id)}>
         <RiDeleteBinLine style={{ fontSize: 14, color: 'var(--red)' }} />
       </button>
     </motion.div>
@@ -46,29 +58,17 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
 
   return (
     <AnimatePresence mode="popLayout">
-      {/* ── Polaroids ── */}
       {polaroids.length > 0 && (
         <>
           <div className="section-divider">📸 Polaroids</div>
           {polaroids.map(renderLine)}
-          {isAdmin && (
-            <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'right', marginBottom: 4 }}>
-              Polaroid subtotal: ₹{polaroidTotal.toFixed(2)}
-            </div>
-          )}
         </>
       )}
 
-      {/* ── Posters & Stickers — individual lines ── */}
       {others.length > 0 && (
         <>
-          <div className="section-divider">🎨 Posters &amp; Stickers</div>
+          <div className="section-divider">🎨 Others</div>
           {others.map(renderLine)}
-          {isAdmin && (
-            <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'right', marginBottom: 4 }}>
-              Others subtotal: ₹{othersTotal.toFixed(2)}
-            </div>
-          )}
         </>
       )}
     </AnimatePresence>
@@ -78,32 +78,32 @@ export default function BillSummary({ cart, onQtyChange, onRemove }) {
 export const BillTotals = ({ cart, coupon }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  const polaroids = cart.filter((i) => i.category === 'polaroid');
-  const others = cart.filter((i) => i.category !== 'polaroid');
-  const polaroidTotal = polaroids.reduce((s, i) => s + i.price * i.qty, 0);
-  const othersTotal = others.reduce((s, i) => s + i.price * i.qty, 0);
-  const subtotal = polaroidTotal + othersTotal;
   
-  const discount = estimateDiscount(cart, coupon);
-  const grandTotal = Math.max(0, subtotal - discount);
+  const discountedCart = getDiscountedCart(cart, coupon);
+  
+  const polaroidTotal = discountedCart.filter(i => i.category === 'polaroid').reduce((s, i) => s + i.totalDiscounted, 0);
+  const othersTotal = discountedCart.filter(i => i.category !== 'polaroid').reduce((s, i) => s + i.totalDiscounted, 0);
+  const totalOriginal = discountedCart.reduce((s, i) => s + i.totalOriginal, 0);
+  const totalDiscounted = polaroidTotal + othersTotal;
+  const savings = totalOriginal - totalDiscounted;
 
   return (
     <div>
-      {isAdmin && subtotal > 0 && (
+      {isAdmin && (
         <>
           <div className="total-row"><span style={{ color: 'var(--text3)' }}>Polaroids</span><span>₹{polaroidTotal.toFixed(2)}</span></div>
           <div className="total-row"><span style={{ color: 'var(--text3)' }}>Others</span><span>₹{othersTotal.toFixed(2)}</span></div>
         </>
       )}
-      {discount > 0 && (
+      {savings > 0 && (
         <div className="total-row">
-          <span style={{ color: 'var(--green)', fontSize: '0.9rem' }}>Offer Applied ({coupon.description || coupon.code})</span>
-          <span style={{ color: 'var(--green)' }}>−₹{discount.toFixed(2)}</span>
+          <span style={{ color: 'var(--green)', fontSize: '0.9rem' }}>Offer Savings ({coupon.description})</span>
+          <span style={{ color: 'var(--green)' }}>−₹{savings.toFixed(2)}</span>
         </div>
       )}
       <div className="total-row grand">
         <span>Grand Total</span>
-        <span className="total-val">₹{grandTotal.toFixed(2)}</span>
+        <span className="total-val">₹{totalDiscounted.toFixed(2)}</span>
       </div>
     </div>
   );
