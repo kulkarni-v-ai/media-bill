@@ -16,17 +16,13 @@ const applySubstitution = (lineItems, offerType) => {
 
   switch (offerType) {
     case 'DICE_1_1': {
-      // Get Another/Next polaroid at 99/-
-      // Find all polaroids, sort by price (desc), the 2nd one becomes 99
-      const polaroids = items.filter(i => i.category === 'polaroid');
-      if (polaroids.length >= 2) {
-        // We take the one with higher price as first, and second as 99
-        // Or if they are multiple, we apply 99 to one of them
-        // Let's find the one closest to a regular price and reduce it
-        const target = polaroids.find(p => p.unitPrice > 99);
-        if (target) {
-          discount = target.unitPrice - 99;
-        }
+      // Get Another/Next polaroid at 99/- (Only for Single Polaroids)
+      const allPolaroids = items.filter(i => i.category === 'polaroid');
+      const singlePolaroid = allPolaroids.find(p => p.unitPrice > 99 && (p.name.toLowerCase().includes('single') || p.piecesPerUnit === 1));
+      
+      // Must have at least 2 polaroid "units" total to qualify for "Another"
+      if (allPolaroids.length >= 2 && singlePolaroid) {
+        discount = singlePolaroid.unitPrice - 99;
       }
       break;
     }
