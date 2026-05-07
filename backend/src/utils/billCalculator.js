@@ -1,3 +1,4 @@
+/**
  * Input: cartItems → [{ itemId, name, category, unitPrice, qty }], coupon → { offerType, description }
  * Output: { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount }
  */
