@@ -2,17 +2,13 @@
  * couponSubstitution.js
  * Handles specific dice game offer logic.
  * These offers "substitute" the prices of items in the cart.
+ * UPDATE: Always targets the CHEAPEST eligible items to avoid loss.
  */
 
 const applySubstitution = (lineItems, offerType) => {
   let discount = 0;
-  const items = [...lineItems];
-
-  // Helper to find items by category/name and apply fixed price
-  const applyFixedPrice = (targetItems, fixedTotal) => {
-    const currentTotal = targetItems.reduce((sum, item) => sum + item.unitPrice, 0);
-    return Math.max(0, currentTotal - fixedTotal);
-  };
+  // Sort items by unitPrice ASCENDING to target cheapest items first
+  const items = [...lineItems].sort((a, b) => a.unitPrice - b.unitPrice);
 
   switch (offerType) {
     case 'DICE_1_1': {
