@@ -97,7 +97,7 @@ export const BillTotals = ({ cart, coupon }) => {
       )}
       {discount > 0 && (
         <div className="total-row">
-          <span style={{ color: 'var(--green)' }}>Discount ({coupon.code})</span>
+          <span style={{ color: 'var(--green)', fontSize: '0.9rem' }}>Offer Applied ({coupon.description || coupon.code})</span>
           <span style={{ color: 'var(--green)' }}>−₹{discount.toFixed(2)}</span>
         </div>
       )}
