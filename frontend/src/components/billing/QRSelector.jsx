@@ -1,4 +1,5 @@
 import { RiQrCodeLine, RiMoneyDollarCircleLine } from 'react-icons/ri';
+import { motion } from 'framer-motion';
  
 const QR_OPTIONS = ['QR1', 'QR2', 'QR3', 'QR4', 'CASH'];
 const QR_COLORS = {
