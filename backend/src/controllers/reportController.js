@@ -29,7 +29,13 @@ const getDailyReport = async (req, res) => {
 
     // Category totals (admin-friendly)
     const polaroidRevenue = bills.reduce((sum, b) => sum + b.polaroidTotal, 0);
+    const digitalPhotoRevenue = bills.reduce((sum, b) => {
+      const dpTotal = b.items.filter(li => li.category === 'digital photo').reduce((s, li) => s + li.subtotal, 0);
+      return sum + dpTotal;
+    }, 0);
     const othersRevenue = bills.reduce((sum, b) => sum + b.othersTotal, 0);
+
+    const totalDiscounts = bills.reduce((sum, b) => sum + (b.discountAmount || 0), 0);
 
     // Top items sold
     const itemMap = {};
@@ -46,7 +52,9 @@ const getDailyReport = async (req, res) => {
       date: targetDate.toISOString().split('T')[0],
       totalBills,
       totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+      totalDiscounts: parseFloat(totalDiscounts.toFixed(2)),
       polaroidRevenue: parseFloat(polaroidRevenue.toFixed(2)),
+      digitalPhotoRevenue: parseFloat(digitalPhotoRevenue.toFixed(2)),
       othersRevenue: parseFloat(othersRevenue.toFixed(2)),
       qrBreakdown: Object.keys(qrBreakdown).map((k) => ({
         qr: k,

@@ -48,15 +48,16 @@ export default function Reports() {
       ) : report ? (
         <>
           {/* Summary cards */}
-          <div className="grid-3 mb-16">
+          <div className="grid-4 mb-16">
             {[
               { label: "Total Revenue", value: `₹${report.totalRevenue}`, color: 'var(--accent2)' },
+              { label: "Total Discounts", value: `₹${report.totalDiscounts}`, color: 'var(--red2)' },
               { label: "Bills Created", value: report.totalBills, color: 'var(--cyan2)' },
               { label: "Avg Bill Value", value: report.totalBills > 0 ? `₹${(report.totalRevenue / report.totalBills).toFixed(2)}` : '₹0', color: 'var(--green)' },
             ].map((s, i) => (
               <motion.div key={s.label} className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{s.label}</div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.value}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: s.color }}>{s.value}</div>
               </motion.div>
             ))}
           </div>
@@ -66,6 +67,7 @@ export default function Reports() {
             <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
               <h3 style={{ marginBottom: 16, fontWeight: 700 }}>Category Breakdown</h3>
               <div className="total-row"><span style={{ color: 'var(--text3)' }}>📸 Polaroids</span><span style={{ color: 'var(--yellow)', fontWeight: 700 }}>₹{report.polaroidRevenue}</span></div>
+              <div className="total-row"><span style={{ color: 'var(--text3)' }}>📱 Digital Photos</span><span style={{ color: 'var(--green)', fontWeight: 700 }}>₹{report.digitalPhotoRevenue}</span></div>
               <div className="total-row"><span style={{ color: 'var(--text3)' }}>🎨 Others</span><span style={{ color: 'var(--cyan2)', fontWeight: 700 }}>₹{report.othersRevenue}</span></div>
               <div className="total-row grand"><span>Total</span><span className="total-val">₹{report.totalRevenue}</span></div>
             </motion.div>
