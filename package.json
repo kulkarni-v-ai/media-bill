@@ -1,7 +1,7 @@
 {
   "name": "media-bill",
   "version": "1.0.0",
-  "description": "Media Billing POS — monorepo root",
+  "description": "Media Billing POS — monorepo root (rebuild trigger 2)",
   "scripts": {
     "build": "npm install --prefix frontend --include=dev && npm run build --prefix frontend && npm install --prefix backend",
     "start": "node backend/src/server.js"
