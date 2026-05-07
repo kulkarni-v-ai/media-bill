@@ -1,13 +1,5 @@
-/**
- * Input: cartItems → [{ itemId, name, category, unitPrice, qty }], coupon → { offerType, description }
- * Output: { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount }
- */
 const { applySubstitution } = require('./couponSubstitution');
 
- * @param {Array} cartItems
- * @param {Object} coupon
- * @returns {{ polaroidTotal: number, othersTotal: number, grandTotal: number, lineItems: Array, discountAmount: number }}
- */
 const calculateBill = (cartItems, coupon = null) => {
   let polaroidTotal = 0;
   let othersTotal = 0;
@@ -37,7 +29,6 @@ const calculateBill = (cartItems, coupon = null) => {
   let grandTotal = parseFloat((polaroidTotal + othersTotal).toFixed(2));
 
   if (coupon) {
-    // Flatten line items for substitution logic (expanding qty)
     const flatItems = [];
     lineItems.forEach(li => {
       for (let i = 0; i < li.qty; i++) {
