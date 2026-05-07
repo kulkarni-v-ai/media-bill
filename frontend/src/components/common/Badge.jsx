@@ -3,8 +3,8 @@ export const RoleBadge = ({ role }) => (
 );
 
 export const CategoryBadge = ({ category }) => (
-  <span className={`badge badge-${category}`}>
-    {category.replace('_', ' ')}
+  <span className={`badge badge-${category.replace(' ', '-')}`}>
+    {category}
   </span>
 );
 

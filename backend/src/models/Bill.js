@@ -10,7 +10,7 @@ const lineItemSchema = new mongoose.Schema(
     name: { type: String, required: true },       // snapshot
     category: {
       type: String,
-      enum: ['polaroid', 'poster', 'sticker', 'digital_photo'],
+      enum: ['polaroid', 'poster', 'sticker', 'digital photo'],
       required: true,
     },
     unitPrice: { type: Number, required: true },   // snapshot

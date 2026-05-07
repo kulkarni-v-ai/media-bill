@@ -7,7 +7,7 @@ import BillSummary, { BillTotals } from '../components/billing/BillSummary';
 import QRSelector from '../components/billing/QRSelector';
 import { RiShoppingCartLine, RiSearchLine, RiPrinterLine, RiDeleteBinLine, RiCheckLine } from 'react-icons/ri';
 
-const CATS = ['all', 'polaroid', 'poster', 'sticker', 'digital_photo'];
+const CATS = ['all', 'polaroid', 'poster', 'sticker', 'digital photo'];
 
 export default function Billing() {
   const [items, setItems]             = useState([]);
@@ -175,7 +175,7 @@ export default function Billing() {
             <div className="pill-tabs">
               {CATS.map((c) => (
                 <button key={c} className={`pill-tab ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>
-                  {c === 'all' ? 'All' : c.replace('_', ' ').charAt(0).toUpperCase() + c.replace('_', ' ').slice(1)}
+                  {c === 'all' ? 'All' : c.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                 </button>
               ))}
             </div>

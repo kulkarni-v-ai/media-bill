@@ -156,7 +156,7 @@ a { text-decoration: none; color: inherit; }
 .badge-polaroid { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
 .badge-poster { background: rgba(124,58,237,0.15); color: var(--accent2); border: 1px solid rgba(124,58,237,0.3); }
 .badge-sticker { background: rgba(6,182,212,0.15); color: var(--cyan2); border: 1px solid rgba(6,182,212,0.3); }
-.badge-digital_photo { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+.badge-digital-photo { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .badge-out { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); animation: pulse-red 2s infinite; }
 .badge-low { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); animation: pulse-yellow 2s infinite; }
 
