@@ -63,7 +63,11 @@ const calculateBill = (cartItems, coupon = null) => {
   othersTotal = parseFloat(othersTotal.toFixed(2));
   let grandTotal = parseFloat((polaroidTotal + othersTotal).toFixed(2));
 
-  return { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount: 0 };
+  // Calculate the tracked discount amount for reporting
+  const originalTotal = cartItems.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
+  discountAmount = parseFloat(Math.max(0, originalTotal - grandTotal).toFixed(2));
+
+  return { polaroidTotal, othersTotal, grandTotal, lineItems, discountAmount };
 };
 
 module.exports = { calculateBill };

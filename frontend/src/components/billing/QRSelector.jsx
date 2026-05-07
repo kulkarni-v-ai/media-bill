@@ -1,4 +1,4 @@
-import { RiQrCodeLine, RiMoneyDollarCircleLine } from 'react-icons/ri';
+import { RiQrCodeLine, RiCoinsLine } from 'react-icons/ri';
 import { motion } from 'framer-motion';
  
 const QR_OPTIONS = ['QR1', 'QR2', 'QR3', 'QR4', 'CASH'];
@@ -26,7 +26,7 @@ export default function QRSelector({ selected, onChange }) {
             type="button"
           >
             <div className="qr-icon">
-              {qr === 'CASH' ? <RiMoneyDollarCircleLine /> : <RiQrCodeLine />}
+              {qr === 'CASH' ? <RiCoinsLine /> : <RiQrCodeLine />}
             </div>
             {qr}
           </motion.button>

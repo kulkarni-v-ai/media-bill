@@ -13,8 +13,9 @@ const getDailyReport = async (req, res) => {
     const bills = await Bill.find({ createdAt: { $gte: start, $lte: end } })
       .populate('createdBy', 'name');
 
-    const totalRevenue = bills.reduce((sum, b) => sum + b.grandTotal, 0);
-    const totalBills = bills.length;
+    const totalNetRevenue = bills.reduce((sum, b) => sum + b.grandTotal, 0);
+    const totalDiscounts = bills.reduce((sum, b) => sum + (b.discountAmount || 0), 0);
+    const totalGrossRevenue = totalNetRevenue + totalDiscounts;
 
     // QR-wise breakdown
     const qrBreakdown = { QR1: 0, QR2: 0, QR3: 0, QR4: 0, CASH: 0 };
@@ -27,15 +28,20 @@ const getDailyReport = async (req, res) => {
       }
     });
 
-    // Category totals (admin-friendly)
-    const polaroidRevenue = bills.reduce((sum, b) => sum + b.polaroidTotal, 0);
-    const digitalPhotoRevenue = bills.reduce((sum, b) => {
-      const dpTotal = b.items.filter(li => li.category === 'digital photo').reduce((s, li) => s + li.subtotal, 0);
-      return sum + dpTotal;
-    }, 0);
-    const othersRevenue = bills.reduce((sum, b) => sum + b.othersTotal, 0);
+    // Detailed Category totals
+    let polaroidRev = 0;
+    let digitalRev = 0;
+    let posterRev = 0;
+    let stickerRev = 0;
 
-    const totalDiscounts = bills.reduce((sum, b) => sum + (b.discountAmount || 0), 0);
+    bills.forEach(b => {
+      b.items.forEach(li => {
+        if (li.category === 'polaroid') polaroidRev += li.subtotal;
+        else if (li.category === 'digital photo') digitalRev += li.subtotal;
+        else if (li.category === 'poster') posterRev += li.subtotal;
+        else if (li.category === 'sticker') stickerRev += li.subtotal;
+      });
+    });
 
     // Top items sold
     const itemMap = {};
@@ -50,12 +56,16 @@ const getDailyReport = async (req, res) => {
 
     res.json({
       date: targetDate.toISOString().split('T')[0],
-      totalBills,
-      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+      totalBills: bills.length,
+      totalNetRevenue: parseFloat(totalNetRevenue.toFixed(2)),
+      totalGrossRevenue: parseFloat(totalGrossRevenue.toFixed(2)),
       totalDiscounts: parseFloat(totalDiscounts.toFixed(2)),
-      polaroidRevenue: parseFloat(polaroidRevenue.toFixed(2)),
-      digitalPhotoRevenue: parseFloat(digitalPhotoRevenue.toFixed(2)),
-      othersRevenue: parseFloat(othersRevenue.toFixed(2)),
+      breakdown: {
+        polaroid: parseFloat(polaroidRev.toFixed(2)),
+        digitalPhoto: parseFloat(digitalRev.toFixed(2)),
+        poster: parseFloat(posterRev.toFixed(2)),
+        sticker: parseFloat(stickerRev.toFixed(2)),
+      },
       qrBreakdown: Object.keys(qrBreakdown).map((k) => ({
         qr: k,
         total: parseFloat(qrBreakdown[k].toFixed(2)),
@@ -83,12 +93,12 @@ const getDateRangeReport = async (req, res) => {
 
     const bills = await Bill.find({ createdAt: { $gte: start, $lte: end } });
 
-    // Group by date
     const dateMap = {};
     bills.forEach((b) => {
       const d = b.createdAt.toISOString().split('T')[0];
-      if (!dateMap[d]) dateMap[d] = { date: d, revenue: 0, count: 0 };
+      if (!dateMap[d]) dateMap[d] = { date: d, revenue: 0, count: 0, discounts: 0 };
       dateMap[d].revenue += b.grandTotal;
+      dateMap[d].discounts += (b.discountAmount || 0);
       dateMap[d].count++;
     });
 
