@@ -49,6 +49,7 @@ const billSchema = new mongoose.Schema(
     },
     isPrinted: { type: Boolean, default: false },
     couponCode: { type: String, trim: true },
+    offerDescription: { type: String, trim: true },
     discountAmount: { type: Number, default: 0 },
   },
   { timestamps: true }

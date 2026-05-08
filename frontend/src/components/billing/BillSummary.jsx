@@ -78,18 +78,18 @@ export const BillTotals = ({ cart, coupon }) => {
   
   const discountedCart = getDiscountedCart(cart || [], coupon);
   
-  const polaroidTotal = discountedCart.filter(i => i.category === 'polaroid').reduce((s, i) => s + (i.totalDiscounted || 0), 0);
-  const othersTotal = discountedCart.filter(i => i.category !== 'polaroid').reduce((s, i) => s + (i.totalDiscounted || 0), 0);
-  const totalOriginal = discountedCart.reduce((s, i) => s + (i.totalOriginal || 0), 0);
-  const totalDiscounted = polaroidTotal + othersTotal;
+  const polaroidOriginal = discountedCart.filter(i => i.category === 'polaroid').reduce((s, i) => s + (i.totalOriginal || 0), 0);
+  const othersOriginal = discountedCart.filter(i => i.category !== 'polaroid').reduce((s, i) => s + (i.totalOriginal || 0), 0);
+  const totalOriginal = polaroidOriginal + othersOriginal;
+  const totalDiscounted = discountedCart.reduce((s, i) => s + (i.totalDiscounted || 0), 0);
   const savings = Math.max(0, totalOriginal - totalDiscounted);
 
   return (
     <div>
       {isAdmin && (
         <>
-          <div className="total-row"><span style={{ color: 'var(--text3)' }}>Polaroids</span><span>₹{polaroidTotal.toFixed(2)}</span></div>
-          <div className="total-row"><span style={{ color: 'var(--text3)' }}>Others</span><span>₹{othersTotal.toFixed(2)}</span></div>
+          <div className="total-row"><span style={{ color: 'var(--text3)' }}>Polaroids</span><span>₹{polaroidOriginal.toFixed(2)}</span></div>
+          <div className="total-row"><span style={{ color: 'var(--text3)' }}>Others</span><span>₹{othersOriginal.toFixed(2)}</span></div>
         </>
       )}
       {savings > 0 && (

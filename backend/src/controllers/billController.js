@@ -104,6 +104,7 @@ const createBill = async (req, res) => {
       grandTotal,
       qrUsed,
       couponCode: coupon ? coupon.code : undefined,
+      offerDescription: coupon ? coupon.description : undefined,
       discountAmount,
     });
 
