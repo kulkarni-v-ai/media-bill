@@ -62,9 +62,9 @@ const applySubstitution = (lineItems, offerType) => {
     }
 
     case 'DICE_5_5': {
-      // 1 Normal (Polaroid) + 1 Digital at ₹125
+      // 1 Normal Polaroid + 1 Digital Photo at ₹125
       const polaroid = items.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
-      const digital = items.find(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
+      const digital = items.find(i => (i.category === 'digital photo' || i.name.toLowerCase().includes('digital')) && i.piecesPerUnit === 1);
       if (polaroid && digital) {
         polaroid.unitPrice = 125;
         polaroid.subtotal = 125;

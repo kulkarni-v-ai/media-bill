@@ -73,7 +73,7 @@ export const getDiscountedCart = (cart, coupon) => {
     }
     case 'DICE_5_5': {
       const polaroid = flatItems.find(i => i.category === 'polaroid' && !i.name.toLowerCase().includes('customized'));
-      const digital = flatItems.find(i => i.category === 'digital photo' || i.name.toLowerCase().includes('digital'));
+      const digital = flatItems.find(i => (i.category === 'digital photo' || i.name.toLowerCase().includes('digital')) && i.piecesPerUnit === 1);
       if (polaroid && digital) {
         polaroid.discountedPrice = 125;
         digital.discountedPrice = 0;
