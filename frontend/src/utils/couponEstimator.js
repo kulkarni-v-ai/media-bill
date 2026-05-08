@@ -64,10 +64,10 @@ export const getDiscountedCart = (cart, coupon) => {
       break;
     }
     case 'DICE_4_4': {
-      const customized = flatItems.filter(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
-      if (customized.length >= 2) {
-        customized[0].discountedPrice = 222;
-        customized[1].discountedPrice = 0;
+      const packs = flatItems.filter(i => i.category === 'polaroid' && i.piecesPerUnit === 2);
+      if (packs.length >= 2) {
+        // flatItems is sorted ASC, so packs[0] is the cheapest
+        packs[0].discountedPrice = 222;
       }
       break;
     }

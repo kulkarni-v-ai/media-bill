@@ -73,6 +73,7 @@ const createBill = async (req, res) => {
         category: item.category,
         unitPrice: item.price,
         qty: ci.qty,
+        piecesPerUnit: item.piecesPerUnit || 1,
         stockItemId: stockItem._id, // where to actually deduct
         pieces,                     // how many physical units to deduct
       });

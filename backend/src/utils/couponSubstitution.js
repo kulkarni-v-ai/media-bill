@@ -51,13 +51,12 @@ const applySubstitution = (lineItems, offerType) => {
     }
 
     case 'DICE_4_4': {
-      // Pack of 2 Customized Polaroids at ₹222
-      const customized = items.filter(i => i.category === 'polaroid' && i.name.toLowerCase().includes('customized'));
-      if (customized.length >= 2) {
-        customized[0].unitPrice = 222;
-        customized[0].subtotal = 222;
-        customized[1].unitPrice = 0;
-        customized[1].subtotal = 0;
+      // Pack of 2 Polaroids at ₹222 (Target any pack of 2)
+      const packs = items.filter(i => i.category === 'polaroid' && i.piecesPerUnit === 2);
+      if (packs.length >= 2) {
+        // items is sorted ASC, so packs[0] is the cheapest
+        packs[0].unitPrice = 222;
+        packs[0].subtotal = 222;
       }
       break;
     }
