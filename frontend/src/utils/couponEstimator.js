@@ -5,7 +5,16 @@
  */
 
 export const getDiscountedCart = (cart, coupon) => {
-  if (!coupon) return cart.map(item => ({ ...item, discountedPrice: item.price }));
+  // If no coupon, still provide totalOriginal/totalDiscounted so UI can render
+  if (!coupon) {
+    return cart.map(item => ({
+      ...item,
+      discountedPrice: item.price,
+      totalDiscounted: item.price * item.qty,
+      totalOriginal: item.price * item.qty,
+      hasDiscount: false
+    }));
+  }
   
   // Create a flat list of individual items to apply offers to
   let flatItems = [];
@@ -90,4 +99,12 @@ export const getDiscountedCart = (cart, coupon) => {
   });
 
   return resultCart;
+};
+
+// Legacy support if needed, though getDiscountedCart is preferred now
+export const estimateDiscount = (cart, coupon) => {
+  const discounted = getDiscountedCart(cart, coupon);
+  const original = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+  const final = discounted.reduce((s, i) => s + i.totalDiscounted, 0);
+  return Math.max(0, original - final);
 };
