@@ -65,7 +65,7 @@ export const getDiscountedCart = (cart, coupon) => {
     }
     case 'DICE_4_4': {
       const packs = flatItems.filter(i => i.category === 'polaroid' && i.piecesPerUnit === 2);
-      if (packs.length >= 2) {
+      if (packs.length >= 1) {
         // flatItems is sorted ASC, so packs[0] is the cheapest
         packs[0].discountedPrice = 222;
       }

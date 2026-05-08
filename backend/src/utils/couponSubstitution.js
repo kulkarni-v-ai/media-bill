@@ -51,9 +51,9 @@ const applySubstitution = (lineItems, offerType) => {
     }
 
     case 'DICE_4_4': {
-      // Pack of 2 Polaroids at ₹222 (Target any pack of 2)
+      // Pack of 2 Polaroids at ₹222 (Directly once)
       const packs = items.filter(i => i.category === 'polaroid' && i.piecesPerUnit === 2);
-      if (packs.length >= 2) {
+      if (packs.length >= 1) {
         // items is sorted ASC, so packs[0] is the cheapest
         packs[0].unitPrice = 222;
         packs[0].subtotal = 222;
