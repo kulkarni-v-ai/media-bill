@@ -8,13 +8,10 @@ export default function BillSummary({ cart, onQtyChange, onRemove, coupon }) {
   const isAdmin = user?.role === 'admin';
 
   // Apply offer logic to get discounted prices for display
-  const discountedCart = getDiscountedCart(cart, coupon);
+  const discountedCart = getDiscountedCart(cart || [], coupon);
 
   const polaroids = discountedCart.filter((i) => i.category === 'polaroid');
   const others = discountedCart.filter((i) => i.category !== 'polaroid');
-
-  const polaroidTotal = polaroids.reduce((s, i) => s + i.totalDiscounted, 0);
-  const othersTotal = others.reduce((s, i) => s + i.totalDiscounted, 0);
 
   const renderLine = (item) => (
     <motion.div
@@ -25,19 +22,19 @@ export default function BillSummary({ cart, onQtyChange, onRemove, coupon }) {
       layout
     >
       <div className="cart-line-info">
-        <div className="cart-line-name">{item.name}</div>
+        <div className="cart-line-name">{item.name || 'Unknown Item'}</div>
         <div className="cart-line-price">
           {item.hasDiscount ? (
             <>
               <span style={{ textDecoration: 'line-through', color: 'var(--text3)', marginRight: 8, fontSize: '0.85rem' }}>
-                ₹{item.totalOriginal.toFixed(2)}
+                ₹{(item.totalOriginal || 0).toFixed(2)}
               </span>
               <span style={{ color: 'var(--green)', fontWeight: 600 }}>
-                ₹{item.totalDiscounted.toFixed(2)}
+                ₹{(item.totalDiscounted || 0).toFixed(2)}
               </span>
             </>
           ) : (
-            <span>₹{item.totalOriginal.toFixed(2)}</span>
+            <span>₹{(item.totalOriginal || 0).toFixed(2)}</span>
           )}
         </div>
       </div>
@@ -79,13 +76,13 @@ export const BillTotals = ({ cart, coupon }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   
-  const discountedCart = getDiscountedCart(cart, coupon);
+  const discountedCart = getDiscountedCart(cart || [], coupon);
   
-  const polaroidTotal = discountedCart.filter(i => i.category === 'polaroid').reduce((s, i) => s + i.totalDiscounted, 0);
-  const othersTotal = discountedCart.filter(i => i.category !== 'polaroid').reduce((s, i) => s + i.totalDiscounted, 0);
-  const totalOriginal = discountedCart.reduce((s, i) => s + i.totalOriginal, 0);
+  const polaroidTotal = discountedCart.filter(i => i.category === 'polaroid').reduce((s, i) => s + (i.totalDiscounted || 0), 0);
+  const othersTotal = discountedCart.filter(i => i.category !== 'polaroid').reduce((s, i) => s + (i.totalDiscounted || 0), 0);
+  const totalOriginal = discountedCart.reduce((s, i) => s + (i.totalOriginal || 0), 0);
   const totalDiscounted = polaroidTotal + othersTotal;
-  const savings = totalOriginal - totalDiscounted;
+  const savings = Math.max(0, totalOriginal - totalDiscounted);
 
   return (
     <div>
@@ -97,7 +94,7 @@ export const BillTotals = ({ cart, coupon }) => {
       )}
       {savings > 0 && (
         <div className="total-row">
-          <span style={{ color: 'var(--green)', fontSize: '0.9rem' }}>Offer Savings ({coupon.description})</span>
+          <span style={{ color: 'var(--green)', fontSize: '0.9rem' }}>Offer Savings ({coupon?.description || 'Offer Applied'})</span>
           <span style={{ color: 'var(--green)' }}>−₹{savings.toFixed(2)}</span>
         </div>
       )}
