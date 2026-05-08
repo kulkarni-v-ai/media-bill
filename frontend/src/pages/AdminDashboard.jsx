@@ -63,8 +63,8 @@ export default function AdminDashboard() {
 
       {/* ── Stat Cards ── */}
       <div className="grid-4 mb-16">
-        <StatCard icon={<RiCoinsLine />} label="Today's Revenue"  value={`₹${report?.totalRevenue ?? '—'}`}       color="var(--accent2)" delay={0}    />
-        <StatCard icon={<RiShoppingCartLine />}      label="Bills Today"       value={report?.totalBills ?? '—'}                color="var(--cyan2)"   delay={0.05} />
+        <StatCard icon={<RiCoinsLine />} label="Today's Revenue"  value={`₹${(report?.totalNetRevenue ?? 0).toFixed(2)}`} color="var(--accent2)" delay={0}    />
+        <StatCard icon={<RiShoppingCartLine />}      label="Bills Today"       value={report?.totalBills ?? 0}                color="var(--cyan2)"   delay={0.05} />
         <StatCard icon={<RiStackLine />}             label="Low Stock Items"   value={lowStock.length}                          color="var(--yellow)"  delay={0.1}  />
         <StatCard icon={<RiAlertLine />}             label="Out of Stock"      value={lowStock.filter(i => i.stock === 0).length} color="var(--red)"   delay={0.15} />
       </div>
@@ -73,10 +73,11 @@ export default function AdminDashboard() {
       {report && (
         <div className="grid-2 mb-16">
           <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <h3 style={{ marginBottom: 16, fontWeight: 700 }}>📸 Revenue Breakdown</h3>
-            <div className="total-row"><span style={{ color: 'var(--text3)' }}>Polaroids</span><span style={{ color: 'var(--yellow)', fontWeight: 700 }}>₹{report.polaroidRevenue}</span></div>
-            <div className="total-row"><span style={{ color: 'var(--text3)' }}>Posters &amp; Stickers</span><span style={{ color: 'var(--cyan2)', fontWeight: 700 }}>₹{report.othersRevenue}</span></div>
-            <div className="total-row grand"><span>Total</span><span className="total-val">₹{report.totalRevenue}</span></div>
+            <h3 style={{ marginBottom: 16, fontWeight: 700 }}>📸 Category Revenue (Net)</h3>
+            <div className="total-row"><span style={{ color: 'var(--text3)' }}>Polaroids</span><span style={{ color: 'var(--yellow)', fontWeight: 700 }}>₹{(report.breakdown?.polaroid || 0).toFixed(2)}</span></div>
+            <div className="total-row"><span style={{ color: 'var(--text3)' }}>Digital Photos</span><span style={{ color: 'var(--green)', fontWeight: 700 }}>₹{(report.breakdown?.digitalPhoto || 0).toFixed(2)}</span></div>
+            <div className="total-row"><span style={{ color: 'var(--text3)' }}>Posters & Stickers</span><span style={{ color: 'var(--cyan2)', fontWeight: 700 }}>₹{((report.breakdown?.poster || 0) + (report.breakdown?.sticker || 0)).toFixed(2)}</span></div>
+            <div className="total-row grand"><span>Total Net</span><span className="total-val">₹{(report.totalNetRevenue || 0).toFixed(2)}</span></div>
           </motion.div>
 
           <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
@@ -84,9 +85,10 @@ export default function AdminDashboard() {
             {report.qrBreakdown?.map((qr) => (
               <div key={qr.qr} className="total-row" style={{ marginBottom: 6 }}>
                 <span style={{ color: 'var(--text3)' }}>{qr.qr} <span style={{ fontSize: 11 }}>({qr.count} bills)</span></span>
-                <span style={{ fontWeight: 700 }}>₹{qr.total}</span>
+                <span style={{ fontWeight: 700 }}>₹{(qr.total || 0).toFixed(2)}</span>
               </div>
             ))}
+            {(!report.qrBreakdown || report.qrBreakdown.length === 0) && <p style={{ color: 'var(--text3)', fontSize: 12 }}>No transactions recorded today</p>}
           </motion.div>
         </div>
       )}
@@ -127,7 +129,7 @@ export default function AdminDashboard() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  {['#', 'Customer', 'Cashier', 'Polaroids', 'Others', 'Grand Total', 'QR', 'Time', ''].map((h) => (
+                  {['#', 'Customer', 'Cashier', 'Grand Total', 'QR', 'Time', ''].map((h) => (
                     <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--text3)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
                   ))}
                 </tr>
@@ -136,10 +138,9 @@ export default function AdminDashboard() {
                 {bills.map((bill, idx) => {
                   const isOpen = expandedId === bill._id;
                   return (
-                    <>
+                    <AnimatePresence key={bill._id}>
                       {/* Main bill row */}
                       <motion.tr
-                        key={bill._id}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.03 }}
@@ -166,14 +167,8 @@ export default function AdminDashboard() {
                           {bill.createdBy?.name ?? '—'}
                           <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'capitalize' }}>{bill.createdBy?.role}</div>
                         </td>
-                        <td style={{ padding: '10px 12px', color: 'var(--yellow)', fontWeight: 600 }}>
-                          ₹{bill.polaroidTotal?.toFixed(2) ?? '—'}
-                        </td>
-                        <td style={{ padding: '10px 12px', color: 'var(--cyan2)', fontWeight: 600 }}>
-                          ₹{bill.othersTotal?.toFixed(2) ?? '—'}
-                        </td>
                         <td style={{ padding: '10px 12px' }}>
-                          <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--accent2)' }}>₹{bill.grandTotal?.toFixed(2)}</span>
+                          <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--accent2)' }}>₹{(bill.grandTotal || 0).toFixed(2)}</span>
                         </td>
                         <td style={{ padding: '10px 12px' }}>
                           <span style={{
@@ -201,9 +196,9 @@ export default function AdminDashboard() {
 
                       {/* Expanded item breakdown */}
                       {isOpen && (
-                        <BillExpandedView key={`${bill._id}-items`} bill={bill} colSpan={9} />
+                        <BillExpandedView key={`${bill._id}-items`} bill={bill} colSpan={7} />
                       )}
-                    </>
+                    </AnimatePresence>
                   );
                 })}
               </tbody>
