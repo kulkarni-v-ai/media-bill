@@ -5,22 +5,29 @@
  */
 
 export const getDiscountedCart = (cart, coupon) => {
+  const safeCart = cart || [];
+  
   // If no coupon, still provide totalOriginal/totalDiscounted so UI can render
   if (!coupon) {
-    return cart.map(item => ({
+    return safeCart.map(item => ({
       ...item,
-      discountedPrice: item.price,
-      totalDiscounted: item.price * item.qty,
-      totalOriginal: item.price * item.qty,
+      discountedPrice: (item.price || 0),
+      totalDiscounted: (item.price || 0) * (item.qty || 1),
+      totalOriginal: (item.price || 0) * (item.qty || 1),
       hasDiscount: false
     }));
   }
   
   // Create a flat list of individual items to apply offers to
   let flatItems = [];
-  cart.forEach(c => {
-    for (let i = 0; i < c.qty; i++) {
-      flatItems.push({ ...c, unitPrice: c.price, originalPrice: c.price, discountedPrice: c.price });
+  safeCart.forEach(c => {
+    for (let i = 0; i < (c.qty || 0); i++) {
+      flatItems.push({ 
+        ...c, 
+        unitPrice: (c.price || 0), 
+        originalPrice: (c.price || 0), 
+        discountedPrice: (c.price || 0) 
+      });
     }
   });
 
@@ -85,7 +92,7 @@ export const getDiscountedCart = (cart, coupon) => {
   }
 
   // Group back into cart items, keeping track of total discounted price vs original
-  const resultCart = cart.map(cartItem => {
+  const resultCart = safeCart.map(cartItem => {
     const itemInstances = flatItems.filter(fi => fi._id === cartItem._id);
     const totalDiscounted = itemInstances.reduce((sum, fi) => sum + fi.discountedPrice, 0);
     const totalOriginal = itemInstances.reduce((sum, fi) => sum + fi.originalPrice, 0);
@@ -101,10 +108,9 @@ export const getDiscountedCart = (cart, coupon) => {
   return resultCart;
 };
 
-// Legacy support if needed, though getDiscountedCart is preferred now
 export const estimateDiscount = (cart, coupon) => {
   const discounted = getDiscountedCart(cart, coupon);
-  const original = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-  const final = discounted.reduce((s, i) => s + i.totalDiscounted, 0);
+  const original = (cart || []).reduce((s, i) => s + ((i.price || 0) * (i.qty || 0)), 0);
+  const final = discounted.reduce((s, i) => s + (i.totalDiscounted || 0), 0);
   return Math.max(0, original - final);
 };
