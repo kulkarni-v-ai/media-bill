@@ -221,7 +221,7 @@ export default function Billing() {
                   <p style={{ fontSize: 12, marginTop: 4 }}>Click items to add them</p>
                 </div>
               ) : (
-                <BillSummary cart={cart} onQtyChange={updateQty} onRemove={removeFromCart} />
+                <BillSummary cart={cart} onQtyChange={updateQty} onRemove={removeFromCart} coupon={appliedCoupon} />
               )}
             </div>
 
